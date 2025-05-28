@@ -16,9 +16,14 @@ export function formatTime(timestamp: string | null): string {
 /**
  * Renders markdown content to HTML
  */
-export async function renderMarkdown(content: string): Promise<string> {
-	const result = await marked(content, { breaks: true });
-	return typeof result === 'string' ? result : await result;
+export function renderMarkdown(content: string): string {
+	try {
+		const result = marked.parse(content, { breaks: true });
+		return typeof result === 'string' ? result : String(result);
+	} catch (error) {
+		console.error('Error rendering markdown:', error);
+		return content; // Fallback to original content
+	}
 }
 
 /**

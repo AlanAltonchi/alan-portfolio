@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { Button, Input, Avatar } from '$lib/components';
-	import { MessageCircle, Send, X, Image } from 'lucide-svelte';
-	import type { Message, ConversationWithUsers } from '$lib/types';
-	import { 
-		createDragHandler, 
-		createTypingManager, 
-		createRealtimeManager, 
+	import { Avatar, Button, Input } from '$lib/components';
+	import type { Message } from '$lib/types';
+	import { formatTime, renderMarkdown, scrollToBottomWithImageLoad } from '$lib/utils/chat';
+	import {
+		createDragHandler,
 		createMessageHandler,
+		createRealtimeManager,
+		createTypingManager,
 		getUserProfiles,
 		isFromSimulator
 	} from '$lib/utils/chat-simulator.svelte';
-	import { formatTime, renderMarkdown, scrollToBottomWithImageLoad } from '$lib/utils/chat';
+	import { Image, MessageCircle, Send, X } from 'lucide-svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let { isOpen = $bindable(false), conversationId, currentUserId, supabase, conversation } = $props();
 
@@ -213,8 +213,8 @@
 					<div class="max-w-xs">
 						<div
 							class="rounded-lg {message.image_url && !message.content ? '' : 'px-4 py-2'} {messageFromSimulator
-								? message.image_url && !message.content ? '' : 'bg-green-500 text-white'
-								: message.image_url && !message.content ? '' : 'bg-blue-500 text-white'}"
+								? message.image_url && !message.content ? '' : 'bg-blue-500 text-white'
+								: message.image_url && !message.content ? '' : 'bg-green-500 text-white'}"
 						>
 							{#if message.content}
 								<div class="prose prose-sm prose-invert max-w-none text-sm">
@@ -259,6 +259,7 @@
 								email={otherUser?.email || 'test@simulator.com'}
 								size="sm"
 								isSimulator={true}
+								class="bg-gradient-to-br from-indigo-500 to-blue-600"
 							/>
 						</div>
 					{/if}
