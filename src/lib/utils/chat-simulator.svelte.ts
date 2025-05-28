@@ -240,7 +240,7 @@ export function createMessageHandler(
 	currentUserId: string
 ) {
 	async function sendMessage(content: string, imageUrl?: string) {
-		if ((!content.trim() && !imageUrl) || !conversationId) return;
+		if ((!content.trim() && !imageUrl) || !conversationId) return null;
 
 		const messageData = {
 			conversation_id: conversationId,
@@ -252,11 +252,15 @@ export function createMessageHandler(
 			image_url: imageUrl || null
 		};
 
-		const { error } = await supabase.from('messages').insert(messageData);
+		const { data, error } = await supabase
+			.from('messages')
+			.insert(messageData)
+			.select()
+			.single();
 
 		if (error) {
 			console.error('Error sending message:', error);
-			return false;
+			return null;
 		}
 
 		// Update conversation timestamp
@@ -265,7 +269,7 @@ export function createMessageHandler(
 			.update({ updated_at: new Date().toISOString() })
 			.eq('id', conversationId);
 
-		return true;
+		return data as Message;
 	}
 
 	async function markMessagesAsRead() {

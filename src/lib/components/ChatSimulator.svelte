@@ -121,8 +121,8 @@
 	async function sendMessage(imageUrl?: string) {
 		if (!messageHandler || (!newMessage.trim() && !imageUrl)) return;
 
-		const success = await messageHandler.sendMessage(newMessage, imageUrl);
-		if (success) {
+		const sentMessage = await messageHandler.sendMessage(newMessage, imageUrl);
+		if (sentMessage) {
 			newMessage = '';
 			typingManager?.stopTyping();
 		}

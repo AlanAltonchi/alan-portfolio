@@ -118,7 +118,7 @@ export class MessageService {
 		receiverId: string,
 		content: string,
 		imageUrl?: string
-	): Promise<boolean> {
+	): Promise<Message | null> {
 		const messageData = {
 			conversation_id: conversationId,
 			sender_id: senderId,
@@ -129,16 +129,18 @@ export class MessageService {
 			image_url: imageUrl || null
 		};
 
-		const { error } = await this.supabase
+		const { data, error } = await this.supabase
 			.from('messages')
-			.insert(messageData);
+			.insert(messageData)
+			.select()
+			.single();
 
 		if (error) {
 			console.error('Error sending message:', error);
-			return false;
+			return null;
 		}
 
-		return true;
+		return data as Message;
 	}
 
 	async markAsRead(

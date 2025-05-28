@@ -18,6 +18,7 @@ interface ChatState {
 	isWindowFocused: boolean;
 	isProgrammaticScroll: boolean;
 	showSimulator: boolean;
+	isLoadingConversation: boolean;
 }
 
 class ChatStore {
@@ -30,7 +31,8 @@ class ChatStore {
 		otherUserTyping: false,
 		isWindowFocused: true,
 		isProgrammaticScroll: false,
-		showSimulator: false
+		showSimulator: false,
+		isLoadingConversation: false
 	});
 
 	private supabase: SupabaseClient | null = null;
@@ -59,6 +61,7 @@ class ChatStore {
 	get isWindowFocused() { return this.state.isWindowFocused; }
 	get isProgrammaticScroll() { return this.state.isProgrammaticScroll; }
 	get showSimulator() { return this.state.showSimulator; }
+	get isLoadingConversation() { return this.state.isLoadingConversation; }
 
 	// Setters
 	setConversations(conversations: ConversationWithUsers[]) {
@@ -106,9 +109,30 @@ class ChatStore {
 	// Conversation management
 	async selectConversation(conversation: ConversationWithUsers) {
 		this.state.selectedConversation = conversation;
-		this.subscribeToMessages(conversation);
-		this.subscribeToTyping(conversation);
-		await this.loadMessages();
+		this.state.isLoadingConversation = true;
+		
+		try {
+			// Load existing messages first to avoid race condition
+			await this.loadMessages();
+			
+			// Then set up realtime subscriptions
+			await this.subscribeToMessages(conversation);
+			await this.subscribeToTyping(conversation);
+			
+			// Conversation is now fully ready
+			this.state.isLoadingConversation = false;
+			
+			// Ensure we're scrolled to bottom after everything is loaded
+			this.ensureScrollToBottom();
+		} catch (error) {
+			console.error('Failed to set up realtime subscriptions:', error);
+			// Continue without realtime subscriptions - the chat will still work
+			// but won't receive real-time updates
+			this.state.isLoadingConversation = false;
+			
+			// Still scroll to bottom even if subscriptions failed
+			this.ensureScrollToBottom();
+		}
 	}
 
 	async createConversation(userId: string): Promise<boolean> {
@@ -148,6 +172,7 @@ class ChatStore {
 			this.state.selectedConversation = null;
 			this.state.messages = [];
 			this.state.showSimulator = false;
+			this.state.isLoadingConversation = false;
 		}
 
 		return success;
@@ -162,7 +187,9 @@ class ChatStore {
 		);
 		
 		this.state.messages = messages;
-		setTimeout(() => this.scrollToBottom(), 100);
+		
+		// Scroll to bottom after messages are loaded using enhanced method
+		this.ensureScrollToBottom();
 	}
 
 	async sendMessage(imageUrl?: string): Promise<boolean> {
@@ -175,7 +202,7 @@ class ChatStore {
 		const otherUserId = this.getOtherUserId();
 		if (!otherUserId) return false;
 
-		const success = await this.messageService.send(
+		const sentMessage = await this.messageService.send(
 			this.state.selectedConversation.id,
 			this.currentUserId,
 			otherUserId,
@@ -183,9 +210,20 @@ class ChatStore {
 			imageUrl
 		);
 
-		if (success) {
+		if (sentMessage) {
+			// Optimistically add the message to the UI immediately
+			this.state.messages = [...this.state.messages, sentMessage];
+			
+			// Clear the input and stop typing
 			this.state.newMessage = '';
 			this.stopTyping();
+			
+			// Scroll to bottom
+			if (imageUrl) {
+				this.scrollToBottomWithImageLoad();
+			} else {
+				setTimeout(() => this.scrollToBottom(), 50);
+			}
 			
 			// Update conversation timestamp
 			if (this.conversationService) {
@@ -193,9 +231,11 @@ class ChatStore {
 					this.state.selectedConversation.id
 				);
 			}
+			
+			return true;
 		}
 
-		return success;
+		return false;
 	}
 
 	async markMessagesAsRead() {
@@ -292,58 +332,103 @@ class ChatStore {
 		}
 	}
 
-	// Realtime subscriptions
-	private subscribeToMessages(conversation: ConversationWithUsers) {
-		if (!this.supabase) return;
+	// Enhanced scroll method that waits for container to be available
+	private ensureScrollToBottom() {
+		const attemptScroll = () => {
+			if (this.messagesContainer) {
+				this.scrollToBottom();
+			} else {
+				// If container isn't available yet, try again after a short delay
+				setTimeout(attemptScroll, 50);
+			}
+		};
+		
+		// Use requestAnimationFrame to ensure DOM is updated
+		requestAnimationFrame(attemptScroll);
+	}
 
+	// Realtime subscriptions
+	private async subscribeToMessages(conversation: ConversationWithUsers): Promise<void> {
+		if (!this.supabase) return;
 		if (this.realtimeChannel) {
 			this.supabase.removeChannel(this.realtimeChannel);
 		}
 
-		this.realtimeChannel = this.supabase
-			.channel(`messages:${conversation.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'messages',
-					filter: `conversation_id=eq.${conversation.id}`
-				},
-				(payload: any) => {
-					this.handleMessageUpdate(payload);
-				}
-			)
-			.subscribe();
+
+		return new Promise((resolve, reject) => {
+			this.realtimeChannel = this.supabase!
+				.channel(`messages:${conversation.id}`)
+				.on(
+					'postgres_changes',
+					{
+						event: '*',
+						schema: 'public',
+						table: 'messages',
+						filter: `conversation_id=eq.${conversation.id}`
+					},
+					(payload: any) => {
+						this.handleMessageUpdate(payload);
+					}
+				)
+				.subscribe((status) => {
+					if (status === 'SUBSCRIBED') {
+						// Add a small delay to ensure subscription is truly ready
+						// This fixes the issue where first message doesn't trigger the subscription
+						setTimeout(() => {
+							resolve();
+						}, 100);
+					} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+						reject(new Error(`Subscription failed with status: ${status}`));
+					}
+				});
+		});
 	}
 
-	private subscribeToTyping(conversation: ConversationWithUsers) {
+	private async subscribeToTyping(conversation: ConversationWithUsers): Promise<void> {
 		if (!this.supabase) return;
 
 		if (this.typingChannel) {
 			this.supabase.removeChannel(this.typingChannel);
 		}
 
-		this.typingChannel = this.supabase
-			.channel(`typing:${conversation.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'typing_status',
-					filter: `conversation_id=eq.${conversation.id}`
-				},
-				(payload: any) => {
-					this.handleTypingUpdate(payload, conversation);
-				}
-			)
-			.subscribe();
+		return new Promise((resolve, reject) => {
+			this.typingChannel = this.supabase!
+				.channel(`typing:${conversation.id}`)
+				.on(
+					'postgres_changes',
+					{
+						event: '*',
+						schema: 'public',
+						table: 'typing_status',
+						filter: `conversation_id=eq.${conversation.id}`
+					},
+					(payload: any) => {
+						this.handleTypingUpdate(payload, conversation);
+					}
+				)
+				.subscribe((status) => {
+					if (status === 'SUBSCRIBED') {
+						// Add a small delay to ensure subscription is truly ready
+						setTimeout(() => resolve(), 100);
+					} else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+						reject(new Error(`Subscription failed with status: ${status}`));
+					}
+				});
+		});
 	}
 
 	private handleMessageUpdate(payload: any) {
+		
+		// Ensure we only handle messages for the currently selected conversation
+		if (!this.state.selectedConversation || 
+			payload.new?.conversation_id !== this.state.selectedConversation.id) {
+			return;
+		}
+
 		if (payload.eventType === 'INSERT') {
-			if (!this.state.messages.some((m) => m.id === payload.new.id)) {
+			// Check for duplicates more thoroughly - this now handles optimistic updates
+			const messageExists = this.state.messages.some((m) => m.id === payload.new.id);
+			if (!messageExists) {
 				this.state.messages = [...this.state.messages, payload.new as Message];
 				
 				if (payload.new.image_url) {
@@ -351,6 +436,7 @@ class ChatStore {
 				} else {
 					setTimeout(() => this.scrollToBottom(), 50);
 				}
+			} else {
 			}
 		} else if (payload.eventType === 'UPDATE') {
 			this.state.messages = this.state.messages.map((m) => 
@@ -413,4 +499,4 @@ class ChatStore {
 	}
 }
 
-export const chatStore = new ChatStore(); 
+export const chatStore = new ChatStore();

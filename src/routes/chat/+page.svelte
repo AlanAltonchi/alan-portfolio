@@ -34,6 +34,15 @@
 		}
 	});
 
+	// Scroll to bottom when messages load or change
+	$effect(() => {
+		if (chatStore.messages.length > 0 && messagesContainer) {
+			setTimeout(() => {
+				chatStore.scrollToBottom();
+			}, 50);
+		}
+	});
+
 	// Set up event handlers for read receipts
 	onMount(() => {
 		const windowHandlers = createWindowFocusHandlers(
