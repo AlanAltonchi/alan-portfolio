@@ -23,7 +23,6 @@ export const actions: Actions = {
 			);
 
 			// Create user with admin client (bypasses email confirmation)
-			console.log('Creating demo user:', userData);
 			const { data: user, error: createError } = await supabaseAdmin.auth.admin.createUser({
 				email: userData.email,
 				password: userData.password,
@@ -41,7 +40,6 @@ export const actions: Actions = {
 				return fail(400, { error: createError.message });
 			}
 
-			console.log('Demo user created successfully:', user.user.id);
 
 			// Return success with user data
 			return {

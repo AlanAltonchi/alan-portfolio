@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { DeveloperDrawer, Navigation, DeveloperModeToggle } from '$lib/components';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { handleUserOnMount, handleAuthStateChange } from '$lib/utils';
+	import { getSubscriptionManager } from '$lib/utils/subscription-manager';
 	import '../app.css';
 
 	let { data, children } = $props();
@@ -11,21 +12,41 @@
 	// Developer mode state
 	let showDeveloperDrawer = $state(false);
 
+	// Store auth subscription for cleanup
+	let authSubscription: { data: { subscription: { unsubscribe: () => void } } } | null = null;
+
 	// Update auth store when data changes
 	$effect(() => {
 		authStore.setAuth(session, user);
 	});
 
 	onMount(() => {
+		
 		// Handle user validation and profile loading on mount
 		handleUserOnMount(supabase, user);
 
+		// Initialize subscription manager
+		getSubscriptionManager(supabase);
+
 		// Set up auth state change listener
-		const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+		authSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
 			await handleAuthStateChange(supabase, event, newSession, session);
 		});
 
-		return () => data.subscription.unsubscribe();
+	});
+
+	onDestroy(() => {
+		
+		// Clean up auth subscription
+		if (authSubscription?.data?.subscription) {
+			authSubscription.data.subscription.unsubscribe();
+			authSubscription = null;
+		}
+
+		// Clean up all other subscriptions
+		const subscriptionManager = getSubscriptionManager(supabase);
+		subscriptionManager.cleanup();
+		
 	});
 </script>
 

@@ -2,6 +2,7 @@ import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { invalidate } from '$app/navigation';
 import { authStore, setUserProfile } from '$lib/stores/auth.svelte';
 import { validateUserExists, handleInvalidSession, loadUserProfile } from './auth-validation';
+import { cleanupAllSubscriptions } from './subscription-manager';
 
 /**
  * Handles user validation and profile loading on mount
@@ -23,7 +24,7 @@ export async function handleUserOnMount(
 }
 
 /**
- * Handles auth state changes
+ * Handles auth state changes with proper session validation and cleanup
  */
 export async function handleAuthStateChange(
 	supabase: SupabaseClient,
@@ -31,16 +32,16 @@ export async function handleAuthStateChange(
 	newSession: Session | null,
 	currentSession: Session | null
 ): Promise<void> {
-	// Validate user exists when signing in or refreshing token
-	if (newSession?.user?.id && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-		const userExists = await validateUserExists(supabase, newSession.user.id);
-		if (!userExists) {
-			await handleInvalidSession(supabase);
-			return;
-		}
 
-		const profile = await loadUserProfile(supabase, newSession.user.id);
-		setUserProfile(profile);
+	// Clean up any existing subscriptions when auth state changes
+	cleanupAllSubscriptions();
+
+	// Handle sign out immediately
+	if (!newSession) {
+		if (authStore.user) {
+			authStore.clearAuth();
+		}
+		return;
 	}
 
 	// Invalidate auth if session changed
@@ -48,10 +49,36 @@ export async function handleAuthStateChange(
 		invalidate('supabase:auth');
 	}
 
-	// Update auth store for state changes
-	if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-		authStore.setAuth(newSession, newSession?.user ?? null);
-	} else if (event === 'SIGNED_OUT') {
-		authStore.clearAuth();
-	}
+	// Use setTimeout to handle async operations properly (like the working example)
+	setTimeout(async () => {
+		try {
+			// Get fresh user data to validate session
+			const { data: userData, error: userError } = await supabase.auth.getUser();
+			
+			if (userError || !userData.user) {
+				console.error('Failed to get user:', userError);
+				await handleInvalidSession(supabase);
+				return;
+			}
+
+			// Validate user exists in database
+			const userExists = await validateUserExists(supabase, userData.user.id);
+			if (!userExists) {
+				await handleInvalidSession(supabase);
+				return;
+			}
+
+			// Load user profile
+			const profile = await loadUserProfile(supabase, userData.user.id);
+			setUserProfile(profile);
+
+			// Update auth store with validated session and user
+			authStore.setAuth(newSession, userData.user);
+			
+
+		} catch (error) {
+			console.error('Error in auth state change handler:', error);
+			await handleInvalidSession(supabase);
+		}
+	}, 0);
 } 
