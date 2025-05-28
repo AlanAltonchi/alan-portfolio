@@ -13,7 +13,19 @@
 	import { Image, MessageCircle, Send, X } from 'lucide-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
-	let { isOpen = $bindable(false), conversationId, currentUserId, supabase, conversation } = $props();
+	let { 
+		isOpen = $bindable(false), 
+		conversationId, 
+		currentUserId, 
+		supabase, 
+		conversation
+	} = $props<{
+		isOpen?: boolean;
+		conversationId: string;
+		currentUserId: string;
+		supabase: any;
+		conversation: any;
+	}>();
 
 	let messages = $state<Message[]>([]);
 	let newMessage = $state('');
@@ -37,9 +49,19 @@
 	let realtimeManager: ReturnType<typeof createRealtimeManager> | null = null;
 
 	onMount(() => {
-		loadMessages();
+		// Set up realtime subscriptions first
 		setupRealtimeSubscriptions();
 		setupEventListeners();
+	});
+
+	// Reload messages whenever the simulator opens
+	$effect(() => {
+		if (isOpen) {
+			// Load messages with a small delay to ensure database consistency
+			setTimeout(() => {
+				loadMessages();
+			}, 100);
+		}
 	});
 
 	onDestroy(() => {
@@ -102,6 +124,7 @@
 
 	async function loadMessages() {
 		if (!messageHandler) return;
+		
 		messages = await messageHandler.loadMessages();
 		setTimeout(scrollToBottom, 100);
 	}

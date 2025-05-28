@@ -497,6 +497,37 @@ class ChatStore {
 			clearTimeout(this.typingTimeout);
 		}
 	}
+
+	// Reset store to initial state
+	reset() {
+		// First cleanup any active subscriptions and timeouts
+		this.destroy();
+
+		// Reset all state to initial values
+		this.state.conversations = [];
+		this.state.selectedConversation = null;
+		this.state.messages = [];
+		this.state.newMessage = '';
+		this.state.isTyping = false;
+		this.state.otherUserTyping = false;
+		this.state.isWindowFocused = true;
+		this.state.isProgrammaticScroll = false;
+		this.state.showSimulator = false;
+		this.state.isLoadingConversation = false;
+
+		// Reset private properties
+		this.supabase = null;
+		this.currentUserId = null;
+		this.messagesContainer = null;
+		this.typingTimeout = null;
+		this.realtimeChannel = null;
+		this.conversationChannel = null;
+		this.typingChannel = null;
+		this.conversationService = null;
+		this.messageService = null;
+		this.typingService = null;
+		this.imageUploadService = null;
+	}
 }
 
 export const chatStore = new ChatStore();

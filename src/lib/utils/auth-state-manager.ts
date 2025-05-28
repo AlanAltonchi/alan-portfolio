@@ -3,6 +3,7 @@ import { invalidate } from '$app/navigation';
 import { authStore, setUserProfile } from '$lib/stores/auth.svelte';
 import { validateUserExists, handleInvalidSession, loadUserProfile } from './auth-validation';
 import { cleanupAllSubscriptions } from './subscription-manager';
+import { resetStoresForUserSwitch, resetAllUserStores } from './store-reset';
 
 /**
  * Handles user validation and profile loading on mount
@@ -36,12 +37,16 @@ export async function handleAuthStateChange(
 	// Clean up any existing subscriptions when auth state changes
 	cleanupAllSubscriptions();
 
-	// Handle sign out immediately
+	// Handle sign out immediately - reset all stores
 	if (!newSession) {
-		if (authStore.user) {
-			authStore.clearAuth();
-		}
+		resetAllUserStores();
 		return;
+	}
+
+	// If switching users (different user ID), reset stores to prevent data leakage
+	if (currentSession?.user?.id && newSession?.user?.id && 
+		currentSession.user.id !== newSession.user.id) {
+		resetStoresForUserSwitch();
 	}
 
 	// Invalidate auth if session changed
