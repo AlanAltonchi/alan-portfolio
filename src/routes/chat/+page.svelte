@@ -115,7 +115,7 @@
 </script>
 
 <div
-	class="flex h-[calc(100vh-8rem)] overflow-hidden rounded-lg bg-white shadow-lg dark:bg-gray-900"
+	class="flex h-[calc(100vh-8rem)] overflow-hidden rounded-xl bg-white shadow-xl border border-gray-200/30 dark:bg-gray-900 dark:shadow-gray-900/50 dark:border-gray-700/30"
 >
 	<!-- Sidebar -->
 	<ConversationSidebar
@@ -127,7 +127,7 @@
 	/>
 
 	<!-- Chat Panel -->
-	<div class="chat-panel flex flex-1 flex-col">
+	<div class="chat-panel flex flex-1 flex-col relative overflow-hidden">
 		{#if chatStore.selectedConversation}
 			<!-- Chat Header -->
 			<ChatHeader
@@ -158,14 +158,14 @@
 			/>
 		{:else}
 			<!-- No conversation selected -->
-			<div class="flex flex-1 items-center justify-center">
-				<div class="text-center">
-					<MessageCircle class="mx-auto mb-4 h-16 w-16 text-gray-300 dark:text-gray-600" />
-					<h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+			<div class="flex flex-1 items-center justify-center bg-gray-50/50 dark:bg-gray-800/50">
+				<div class="text-center p-8 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+					<MessageCircle class="mx-auto mb-4 h-16 w-16 text-gray-400 dark:text-gray-500" />
+					<h3 class="mb-3 text-xl font-semibold text-gray-900 dark:text-gray-100">
 						Select a conversation
 					</h3>
-					<p class="text-gray-500 dark:text-gray-400">
-						Choose a conversation from the sidebar or start a new chat
+					<p class="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
+						Choose a conversation from the sidebar or start a new chat to begin messaging
 					</p>
 				</div>
 			</div>

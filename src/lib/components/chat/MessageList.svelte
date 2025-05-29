@@ -19,7 +19,7 @@
 
 <div
 	bind:this={messagesContainer}
-	class="scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800 flex-1 space-y-4 overflow-y-auto p-4"
+	class="flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
 	role="presentation"
 >
 	{#each messages as message}

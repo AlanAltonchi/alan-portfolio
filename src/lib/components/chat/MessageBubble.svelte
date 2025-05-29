@@ -51,7 +51,7 @@
 		<div
 			class="rounded-lg {message.image_url && !message.content
 				? ''
-				: 'px-4 py-2'} {isFromCurrentUser
+				: 'px-3 py-2'} {isFromCurrentUser
 				? message.image_url && !message.content
 					? ''
 					: 'bg-blue-500 text-white'
@@ -61,31 +61,33 @@
 						: 'bg-green-500 text-white'
 					: message.image_url && !message.content
 						? ''
-						: 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'}"
+						: 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100'}"
 		>
 			{#if message.content}
 				{#await getRenderedContent()}
-					<div class="text-sm">Loading...</div>
+					<div class="text-sm opacity-75">Loading...</div>
 				{:then renderedContent}
 					<div
 						class="prose prose-sm max-w-none text-sm {isFromCurrentUser || isFromSimulator
 							? 'prose-invert'
-							: ''}"
+							: 'dark:prose-invert'}"
 					>
 						{@html renderedContent}
 					</div>
 				{:catch error}
-					<div class="text-sm text-red-500">Error rendering content</div>
+					<div class="text-sm text-red-400">Error rendering content</div>
 				{/await}
 			{/if}
 
 			{#if message.image_url}
-				<img
-					src={message.image_url}
-					alt="Shared img"
-					class="{message.content ? 'mt-2' : ''} max-h-64 max-w-xs rounded object-contain"
-					onload={onImageLoad}
-				/>
+				<div class="{message.content ? 'mt-2' : ''}">
+					<img
+						src={message.image_url}
+						alt="Shared img"
+						class="max-h-64 max-w-xs rounded object-contain"
+						onload={onImageLoad}
+					/>
+				</div>
 			{/if}
 		</div>
 
