@@ -57,7 +57,7 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					View your activity and usage statistics.
 				</p>
-				<Button variant="outline" size="sm">View Analytics</Button>
+				<Button variant="outline" size="sm" onclick={() => goto('/analytics')}>View Analytics</Button>
 			</Card>
 
 			<Card variant="outlined">

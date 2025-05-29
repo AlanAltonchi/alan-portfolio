@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	// Define which tables are relevant for the dashboard page
-	const relevantTables = ['users', 'profiles', 'tasks', 'messages', 'emails', 'events'];
+	const relevantTables = ['analytics_page_performance', 'analytics_device_stats', 'analytics_overview', 'analytics_traffic_sources', 'analytics_user_activity'];
 
 	try {
 		// Fetch RLS rules for relevant tables

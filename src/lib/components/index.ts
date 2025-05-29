@@ -32,3 +32,9 @@ export { default as ChatHeader } from './chat/ChatHeader.svelte';
 export { default as MessageList } from './chat/MessageList.svelte';
 export { default as MessageInput } from './chat/MessageInput.svelte';
 export { default as MessageBubble } from './chat/MessageBubble.svelte';
+
+// Chart components
+export { default as LineChart } from './charts/LineChart.svelte';
+export { default as DonutChart } from './charts/DonutChart.svelte';
+export { default as BarChart } from './charts/BarChart.svelte';
+export { default as HeatMap } from './charts/HeatMap.svelte';
