@@ -1,10 +1,10 @@
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import type { ConversationWithUsers, Message } from '$lib/types';
-import { 
-	ConversationService, 
-	MessageService, 
-	TypingService, 
-	ImageUploadService 
+import {
+	ConversationService,
+	MessageService,
+	TypingService,
+	ImageUploadService
 } from '$lib/services/chat';
 import { scrollToBottom, scrollToBottomWithImageLoad } from '$lib/utils/chat';
 
@@ -52,16 +52,36 @@ class ChatStore {
 	private imageUploadService: ImageUploadService | null = null;
 
 	// Getters
-	get conversations() { return this.state.conversations; }
-	get selectedConversation() { return this.state.selectedConversation; }
-	get messages() { return this.state.messages; }
-	get newMessage() { return this.state.newMessage; }
-	get isTyping() { return this.state.isTyping; }
-	get otherUserTyping() { return this.state.otherUserTyping; }
-	get isWindowFocused() { return this.state.isWindowFocused; }
-	get isProgrammaticScroll() { return this.state.isProgrammaticScroll; }
-	get showSimulator() { return this.state.showSimulator; }
-	get isLoadingConversation() { return this.state.isLoadingConversation; }
+	get conversations() {
+		return this.state.conversations;
+	}
+	get selectedConversation() {
+		return this.state.selectedConversation;
+	}
+	get messages() {
+		return this.state.messages;
+	}
+	get newMessage() {
+		return this.state.newMessage;
+	}
+	get isTyping() {
+		return this.state.isTyping;
+	}
+	get otherUserTyping() {
+		return this.state.otherUserTyping;
+	}
+	get isWindowFocused() {
+		return this.state.isWindowFocused;
+	}
+	get isProgrammaticScroll() {
+		return this.state.isProgrammaticScroll;
+	}
+	get showSimulator() {
+		return this.state.showSimulator;
+	}
+	get isLoadingConversation() {
+		return this.state.isLoadingConversation;
+	}
 
 	// Setters
 	setConversations(conversations: ConversationWithUsers[]) {
@@ -98,7 +118,7 @@ class ChatStore {
 	initialize(supabase: SupabaseClient, currentUserId: string) {
 		this.supabase = supabase;
 		this.currentUserId = currentUserId;
-		
+
 		// Initialize services
 		this.conversationService = new ConversationService(supabase);
 		this.messageService = new MessageService(supabase);
@@ -110,18 +130,18 @@ class ChatStore {
 	async selectConversation(conversation: ConversationWithUsers) {
 		this.state.selectedConversation = conversation;
 		this.state.isLoadingConversation = true;
-		
+
 		try {
 			// Load existing messages first to avoid race condition
 			await this.loadMessages();
-			
+
 			// Then set up realtime subscriptions
 			await this.subscribeToMessages(conversation);
 			await this.subscribeToTyping(conversation);
-			
+
 			// Conversation is now fully ready
 			this.state.isLoadingConversation = false;
-			
+
 			// Ensure we're scrolled to bottom after everything is loaded
 			this.ensureScrollToBottom();
 		} catch (error) {
@@ -129,7 +149,7 @@ class ChatStore {
 			// Continue without realtime subscriptions - the chat will still work
 			// but won't receive real-time updates
 			this.state.isLoadingConversation = false;
-			
+
 			// Still scroll to bottom even if subscriptions failed
 			this.ensureScrollToBottom();
 		}
@@ -138,10 +158,7 @@ class ChatStore {
 	async createConversation(userId: string): Promise<boolean> {
 		if (!this.conversationService || !this.currentUserId) return false;
 
-		const newConversation = await this.conversationService.create(
-			this.currentUserId, 
-			userId
-		);
+		const newConversation = await this.conversationService.create(this.currentUserId, userId);
 
 		if (newConversation) {
 			this.state.conversations = [newConversation, ...this.state.conversations];
@@ -160,15 +177,11 @@ class ChatStore {
 	async deleteConversation(): Promise<boolean> {
 		if (!this.conversationService || !this.state.selectedConversation) return false;
 
-		const success = await this.conversationService.delete(
-			this.state.selectedConversation.id
-		);
+		const success = await this.conversationService.delete(this.state.selectedConversation.id);
 
 		if (success) {
 			const conversationId = this.state.selectedConversation.id;
-			this.state.conversations = this.state.conversations.filter(
-				c => c.id !== conversationId
-			);
+			this.state.conversations = this.state.conversations.filter((c) => c.id !== conversationId);
 			this.state.selectedConversation = null;
 			this.state.messages = [];
 			this.state.showSimulator = false;
@@ -182,12 +195,10 @@ class ChatStore {
 	async loadMessages() {
 		if (!this.messageService || !this.state.selectedConversation) return;
 
-		const messages = await this.messageService.loadMessages(
-			this.state.selectedConversation.id
-		);
-		
+		const messages = await this.messageService.loadMessages(this.state.selectedConversation.id);
+
 		this.state.messages = messages;
-		
+
 		// Scroll to bottom after messages are loaded using enhanced method
 		this.ensureScrollToBottom();
 	}
@@ -213,25 +224,23 @@ class ChatStore {
 		if (sentMessage) {
 			// Optimistically add the message to the UI immediately
 			this.state.messages = [...this.state.messages, sentMessage];
-			
+
 			// Clear the input and stop typing
 			this.state.newMessage = '';
 			this.stopTyping();
-			
+
 			// Scroll to bottom
 			if (imageUrl) {
 				this.scrollToBottomWithImageLoad();
 			} else {
 				setTimeout(() => this.scrollToBottom(), 50);
 			}
-			
+
 			// Update conversation timestamp
 			if (this.conversationService) {
-				await this.conversationService.updateTimestamp(
-					this.state.selectedConversation.id
-				);
+				await this.conversationService.updateTimestamp(this.state.selectedConversation.id);
 			}
-			
+
 			return true;
 		}
 
@@ -239,11 +248,16 @@ class ChatStore {
 	}
 
 	async markMessagesAsRead() {
-		if (!this.messageService || !this.state.selectedConversation || 
-			!this.state.isWindowFocused || !this.currentUserId) return;
+		if (
+			!this.messageService ||
+			!this.state.selectedConversation ||
+			!this.state.isWindowFocused ||
+			!this.currentUserId
+		)
+			return;
 
-		const isSelfConversation = this.state.selectedConversation.user_a === 
-			this.state.selectedConversation.user_b;
+		const isSelfConversation =
+			this.state.selectedConversation.user_a === this.state.selectedConversation.user_b;
 
 		// Check if there are any unread messages first
 		let hasUnreadMessages = false;
@@ -254,7 +268,7 @@ class ChatStore {
 			});
 		} else {
 			hasUnreadMessages = this.state.messages.some(
-				m => m.sender_id !== this.currentUserId && !m.read_at
+				(m) => m.sender_id !== this.currentUserId && !m.read_at
 			);
 		}
 
@@ -275,15 +289,11 @@ class ChatStore {
 
 	// Typing management
 	async startTyping() {
-		if (!this.typingService || !this.state.selectedConversation || 
-			!this.currentUserId) return;
+		if (!this.typingService || !this.state.selectedConversation || !this.currentUserId) return;
 
 		if (!this.state.isTyping) {
 			this.state.isTyping = true;
-			await this.typingService.start(
-				this.state.selectedConversation.id,
-				this.currentUserId
-			);
+			await this.typingService.start(this.state.selectedConversation.id, this.currentUserId);
 		}
 
 		// Clear existing timeout
@@ -296,15 +306,11 @@ class ChatStore {
 	}
 
 	async stopTyping() {
-		if (!this.typingService || !this.state.selectedConversation || 
-			!this.currentUserId) return;
+		if (!this.typingService || !this.state.selectedConversation || !this.currentUserId) return;
 
 		if (this.state.isTyping) {
 			this.state.isTyping = false;
-			await this.typingService.stop(
-				this.state.selectedConversation.id,
-				this.currentUserId
-			);
+			await this.typingService.stop(this.state.selectedConversation.id, this.currentUserId);
 		}
 
 		if (this.typingTimeout) {
@@ -342,7 +348,7 @@ class ChatStore {
 				setTimeout(attemptScroll, 50);
 			}
 		};
-		
+
 		// Use requestAnimationFrame to ensure DOM is updated
 		requestAnimationFrame(attemptScroll);
 	}
@@ -354,10 +360,8 @@ class ChatStore {
 			this.supabase.removeChannel(this.realtimeChannel);
 		}
 
-
 		return new Promise((resolve, reject) => {
-			this.realtimeChannel = this.supabase!
-				.channel(`messages:${conversation.id}`)
+			this.realtimeChannel = this.supabase!.channel(`messages:${conversation.id}`)
 				.on(
 					'postgres_changes',
 					{
@@ -392,8 +396,7 @@ class ChatStore {
 		}
 
 		return new Promise((resolve, reject) => {
-			this.typingChannel = this.supabase!
-				.channel(`typing:${conversation.id}`)
+			this.typingChannel = this.supabase!.channel(`typing:${conversation.id}`)
 				.on(
 					'postgres_changes',
 					{
@@ -418,10 +421,11 @@ class ChatStore {
 	}
 
 	private handleMessageUpdate(payload: any) {
-		
 		// Ensure we only handle messages for the currently selected conversation
-		if (!this.state.selectedConversation || 
-			payload.new?.conversation_id !== this.state.selectedConversation.id) {
+		if (
+			!this.state.selectedConversation ||
+			payload.new?.conversation_id !== this.state.selectedConversation.id
+		) {
 			return;
 		}
 
@@ -430,7 +434,7 @@ class ChatStore {
 			const messageExists = this.state.messages.some((m) => m.id === payload.new.id);
 			if (!messageExists) {
 				this.state.messages = [...this.state.messages, payload.new as Message];
-				
+
 				if (payload.new.image_url) {
 					this.scrollToBottomWithImageLoad();
 				} else {
@@ -439,13 +443,11 @@ class ChatStore {
 			} else {
 			}
 		} else if (payload.eventType === 'UPDATE') {
-			this.state.messages = this.state.messages.map((m) => 
-				m.id === payload.new.id ? payload.new as Message : m
+			this.state.messages = this.state.messages.map((m) =>
+				m.id === payload.new.id ? (payload.new as Message) : m
 			);
 		} else if (payload.eventType === 'DELETE') {
-			this.state.messages = this.state.messages.filter(
-				(m) => m.id !== payload.old.id
-			);
+			this.state.messages = this.state.messages.filter((m) => m.id !== payload.old.id);
 		}
 	}
 
@@ -457,8 +459,8 @@ class ChatStore {
 			if (isSelfConversation) {
 				this.state.otherUserTyping = typingData.is_simulator && typingData.is_typing;
 			} else {
-				this.state.otherUserTyping = typingData.user_id !== this.currentUserId && 
-					typingData.is_typing;
+				this.state.otherUserTyping =
+					typingData.user_id !== this.currentUserId && typingData.is_typing;
 			}
 		} else if (payload.eventType === 'DELETE') {
 			this.state.otherUserTyping = false;

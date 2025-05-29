@@ -10,4 +10,4 @@ export * from './chat-simulator.svelte';
 export * from './profile.svelte';
 
 // Developer utilities
-export * from './developer-drawer.svelte'; 
+export * from './developer-drawer.svelte';

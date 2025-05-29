@@ -7,9 +7,9 @@ import { profileStore } from '$lib/stores/profile.svelte.js';
  */
 export function formatTime(timestamp: string | null): string {
 	if (!timestamp) return '';
-	return new Date(timestamp).toLocaleTimeString([], { 
-		hour: '2-digit', 
-		minute: '2-digit' 
+	return new Date(timestamp).toLocaleTimeString([], {
+		hour: '2-digit',
+		minute: '2-digit'
 	});
 }
 
@@ -29,18 +29,15 @@ export function renderMarkdown(content: string): string {
 /**
  * Gets the other user in a conversation relative to the current user
  */
-export function getOtherUser(
-	conversation: ConversationWithUsers, 
-	currentUserId: string
-) {
+export function getOtherUser(conversation: ConversationWithUsers, currentUserId: string) {
 	// For self-conversations, return the same user profile
 	if (conversation.user_a === conversation.user_b) {
 		return {
 			id: currentUserId,
 			email: 'Self Chat',
-			profiles: { 
-				name: 'You', 
-				avatar_url: profileStore.currentProfile?.avatar_url 
+			profiles: {
+				name: 'You',
+				avatar_url: profileStore.currentProfile?.avatar_url
 			}
 		};
 	}
@@ -53,14 +50,11 @@ export function getOtherUser(
 /**
  * Scrolls a container to the bottom
  */
-export function scrollToBottom(
-	container: HTMLElement | null,
-	onComplete?: () => void
-): void {
+export function scrollToBottom(container: HTMLElement | null, onComplete?: () => void): void {
 	if (!container) return;
-	
+
 	container.scrollTop = container.scrollHeight;
-	
+
 	if (onComplete) {
 		setTimeout(onComplete, 100);
 	}
@@ -87,4 +81,4 @@ export function scrollToBottomWithImageLoad(
 	setTimeout(() => {
 		scrollToBottom(container, onComplete);
 	}, 500);
-} 
+}

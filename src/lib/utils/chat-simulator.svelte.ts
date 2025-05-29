@@ -47,7 +47,10 @@ export function createDragHandler() {
 		if (!dragState.isDragging) return;
 
 		const newX = Math.max(0, Math.min(window.innerWidth - 384, event.clientX - dragState.offset.x));
-		const newY = Math.max(0, Math.min(window.innerHeight - 500, event.clientY - dragState.offset.y));
+		const newY = Math.max(
+			0,
+			Math.min(window.innerHeight - 500, event.clientY - dragState.offset.y)
+		);
 
 		position = { x: newX, y: newY };
 	}
@@ -59,8 +62,12 @@ export function createDragHandler() {
 	}
 
 	return {
-		get isDragging() { return dragState.isDragging; },
-		get position() { return position; },
+		get isDragging() {
+			return dragState.isDragging;
+		},
+		get position() {
+			return position;
+		},
 		handleMouseDown
 	};
 }
@@ -133,8 +140,12 @@ export function createTypingManager(
 	}
 
 	return {
-		get isTyping() { return typingState.isTyping; },
-		get mainUserTyping() { return typingState.mainUserTyping; },
+		get isTyping() {
+			return typingState.isTyping;
+		},
+		get mainUserTyping() {
+			return typingState.mainUserTyping;
+		},
 		startTyping,
 		stopTyping,
 		setMainUserTyping,
@@ -219,7 +230,7 @@ export function createRealtimeManager(
 	}
 
 	function cleanup() {
-		channels.forEach(channel => supabase.removeChannel(channel));
+		channels.forEach((channel) => supabase.removeChannel(channel));
 		channels = [];
 	}
 
@@ -252,11 +263,7 @@ export function createMessageHandler(
 			image_url: imageUrl || null
 		};
 
-		const { data, error } = await supabase
-			.from('messages')
-			.insert(messageData)
-			.select()
-			.single();
+		const { data, error } = await supabase.from('messages').insert(messageData).select().single();
 
 		if (error) {
 			console.error('Error sending message:', error);
@@ -315,9 +322,9 @@ export function createMessageHandler(
 				return null;
 			}
 
-			const { data: { publicUrl } } = supabase.storage
-				.from('chat-images')
-				.getPublicUrl(filePath);
+			const {
+				data: { publicUrl }
+			} = supabase.storage.from('chat-images').getPublicUrl(filePath);
 
 			return publicUrl;
 		} catch (error) {
@@ -337,40 +344,37 @@ export function createMessageHandler(
 /**
  * Gets user profiles from conversation data
  */
-export function getUserProfiles(
-	conversation: ConversationWithUsers | null,
-	currentUserId: string
-) {
+export function getUserProfiles(conversation: ConversationWithUsers | null, currentUserId: string) {
 	if (!conversation) return { mainUser: null, otherUser: null };
 
 	function getMainUser() {
 		if (!conversation) return null;
-		
+
 		if (conversation.user_a === conversation.user_b) {
 			return conversation.user_a_profile;
 		}
-		
-		return conversation.user_a === currentUserId 
-			? conversation.user_a_profile 
+
+		return conversation.user_a === currentUserId
+			? conversation.user_a_profile
 			: conversation.user_b_profile;
 	}
 
 	function getOtherUser() {
 		if (!conversation) return null;
-		
+
 		if (conversation.user_a === conversation.user_b) {
 			return {
 				id: 'test-user',
 				email: 'test@simulator.com',
-				profiles: { 
-					name: 'Test User', 
-					avatar_url: null 
+				profiles: {
+					name: 'Test User',
+					avatar_url: null
 				}
 			};
 		}
-		
-		return conversation.user_a === currentUserId 
-			? conversation.user_b_profile 
+
+		return conversation.user_a === currentUserId
+			? conversation.user_b_profile
 			: conversation.user_a_profile;
 	}
 
@@ -383,4 +387,4 @@ export function getUserProfiles(
 export function isFromSimulator(message: Message): boolean {
 	const metadata = message.metadata as { from_simulator?: boolean } | null;
 	return metadata?.from_simulator === true;
-} 
+}

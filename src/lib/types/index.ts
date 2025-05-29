@@ -3,25 +3,25 @@ export type { Database, Tables, TablesInsert, TablesUpdate, Json } from './datab
 
 // Re-export all entity types
 export type {
-  // Main entity types
-  User,
-  Profile,
-  Task,
-  Message,
-  Conversation,
-  Email,
-  Event,
-  TypingStatus,
-  
-  // Extended types with relationships
-  MessageWithSender,
-  ConversationWithUsers,
-  UserWithProfile,
-  
-  // Utility types
-  TaskStatus,
-  ID,
-  Timestamp,
-  ApiResponse,
-  PaginatedResponse
-} from './entities.js'; 
+	// Main entity types
+	User,
+	Profile,
+	Task,
+	Message,
+	Conversation,
+	Email,
+	Event,
+	TypingStatus,
+
+	// Extended types with relationships
+	MessageWithSender,
+	ConversationWithUsers,
+	UserWithProfile,
+
+	// Utility types
+	TaskStatus,
+	ID,
+	Timestamp,
+	ApiResponse,
+	PaginatedResponse
+} from './entities.js';

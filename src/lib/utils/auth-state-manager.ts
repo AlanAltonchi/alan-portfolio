@@ -33,7 +33,6 @@ export async function handleAuthStateChange(
 	newSession: Session | null,
 	currentSession: Session | null
 ): Promise<void> {
-
 	// Clean up any existing subscriptions when auth state changes
 	cleanupAllSubscriptions();
 
@@ -44,8 +43,11 @@ export async function handleAuthStateChange(
 	}
 
 	// If switching users (different user ID), reset stores to prevent data leakage
-	if (currentSession?.user?.id && newSession?.user?.id && 
-		currentSession.user.id !== newSession.user.id) {
+	if (
+		currentSession?.user?.id &&
+		newSession?.user?.id &&
+		currentSession.user.id !== newSession.user.id
+	) {
 		resetStoresForUserSwitch();
 	}
 
@@ -59,7 +61,7 @@ export async function handleAuthStateChange(
 		try {
 			// Get fresh user data to validate session
 			const { data: userData, error: userError } = await supabase.auth.getUser();
-			
+
 			if (userError || !userData.user) {
 				console.error('Failed to get user:', userError);
 				await handleInvalidSession(supabase);
@@ -79,11 +81,9 @@ export async function handleAuthStateChange(
 
 			// Update auth store with validated session and user
 			authStore.setAuth(newSession, userData.user);
-			
-
 		} catch (error) {
 			console.error('Error in auth state change handler:', error);
 			await handleInvalidSession(supabase);
 		}
 	}, 0);
-} 
+}

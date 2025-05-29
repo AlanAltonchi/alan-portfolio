@@ -33,7 +33,7 @@ export class SubscriptionManager {
 	 * Clean up all subscriptions
 	 */
 	cleanup(): void {
-		this.subscriptions.forEach(subscription => {
+		this.subscriptions.forEach((subscription) => {
 			this.supabase.removeChannel(subscription);
 		});
 		this.subscriptions = [];
@@ -74,4 +74,4 @@ export function cleanupAllSubscriptions(): void {
 	if (globalSubscriptionManager) {
 		globalSubscriptionManager.cleanup();
 	}
-} 
+}

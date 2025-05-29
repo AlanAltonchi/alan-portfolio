@@ -21,7 +21,6 @@
 	});
 
 	onMount(() => {
-		
 		// Handle user validation and profile loading on mount
 		handleUserOnMount(supabase, user);
 
@@ -32,11 +31,9 @@
 		authSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
 			await handleAuthStateChange(supabase, event, newSession, session);
 		});
-
 	});
 
 	onDestroy(() => {
-		
 		// Clean up auth subscription
 		if (authSubscription?.data?.subscription) {
 			authSubscription.data.subscription.unsubscribe();
@@ -46,7 +43,6 @@
 		// Clean up all other subscriptions
 		const subscriptionManager = getSubscriptionManager(supabase);
 		subscriptionManager.cleanup();
-		
 	});
 </script>
 

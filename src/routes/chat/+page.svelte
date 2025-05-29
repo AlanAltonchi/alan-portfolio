@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { 
-		ConversationSidebar, 
-		ChatHeader, 
-		MessageList, 
-		MessageInput, 
-		ChatSimulator 
+	import {
+		ConversationSidebar,
+		ChatHeader,
+		MessageList,
+		MessageInput,
+		ChatSimulator
 	} from '$lib/components';
 	import { supabase } from '$lib/db.svelte';
 	import { chatStore } from '$lib/stores/chat.svelte';
-	import { 
-		createWindowFocusHandlers, 
-		createInteractionHandlers, 
-		setupEventListeners 
+	import {
+		createWindowFocusHandlers,
+		createInteractionHandlers,
+		setupEventListeners
 	} from '$lib/handlers/chat';
 	import { MessageCircle } from 'lucide-svelte';
-	import { onMount, onDestroy} from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	let { data } = $props();
 	let messagesContainer = $state<HTMLDivElement>();

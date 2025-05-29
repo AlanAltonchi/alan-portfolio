@@ -2,7 +2,7 @@
 	import MessageBubble from './MessageBubble.svelte';
 	import type { Message, ConversationWithUsers } from '$lib/types';
 
-	let { 
+	let {
 		messages,
 		conversation,
 		currentUserId,
@@ -23,11 +23,6 @@
 	role="presentation"
 >
 	{#each messages as message}
-		<MessageBubble 
-			{message}
-			{conversation}
-			{currentUserId}
-			{onImageLoad}
-		/>
+		<MessageBubble {message} {conversation} {currentUserId} {onImageLoad} />
 	{/each}
-</div> 
+</div>

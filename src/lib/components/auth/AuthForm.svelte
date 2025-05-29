@@ -57,7 +57,7 @@
 		type="password"
 		bind:value={password}
 		placeholder="Enter your password"
-		helperText={showConfirmPassword ? "Must be at least 6 characters" : undefined}
+		helperText={showConfirmPassword ? 'Must be at least 6 characters' : undefined}
 		required
 	/>
 
@@ -72,7 +72,7 @@
 	{/if}
 
 	{#if error}
-		<div class="text-red-600 dark:text-red-400 text-sm">{error}</div>
+		<div class="text-sm text-red-600 dark:text-red-400">{error}</div>
 	{/if}
 
 	<Button
@@ -84,4 +84,4 @@
 	>
 		{loading ? loadingText : submitText}
 	</Button>
-</form> 
+</form>

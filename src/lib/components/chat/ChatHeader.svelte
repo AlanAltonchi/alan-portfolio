@@ -4,12 +4,7 @@
 	import { getOtherUser } from '$lib/utils/chat';
 	import type { ConversationWithUsers } from '$lib/types';
 
-	let { 
-		conversation,
-		currentUserId,
-		onShowSimulator,
-		onDeleteConversation
-	} = $props<{
+	let { conversation, currentUserId, onShowSimulator, onDeleteConversation } = $props<{
 		conversation: ConversationWithUsers;
 		currentUserId: string;
 		onShowSimulator: () => void;
@@ -35,11 +30,9 @@
 		</div>
 	</div>
 	<div class="flex gap-2">
-		<Button variant="ghost" size="sm" onclick={onShowSimulator}>
-			Simulate 2nd User
-		</Button>
+		<Button variant="ghost" size="sm" onclick={onShowSimulator}>Simulate 2nd User</Button>
 		<Button variant="ghost" size="sm" onclick={onDeleteConversation}>
 			<Trash2 class="h-4 w-4" />
 		</Button>
 	</div>
-</div> 
+</div>

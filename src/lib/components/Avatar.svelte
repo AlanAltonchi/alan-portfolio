@@ -65,7 +65,7 @@
 			'bg-gradient-to-br from-teal-500 to-cyan-600',
 			'bg-gradient-to-br from-yellow-500 to-orange-600'
 		];
-		
+
 		// Simple hash function to get consistent color
 		let hash = 0;
 		for (let i = 0; i < text.length; i++) {
@@ -86,12 +86,14 @@
 </script>
 
 <div
-	class="flex items-center justify-center rounded-full font-medium text-white overflow-hidden {sizeClass} {src ? '' : bgColor} {className}"
+	class="flex items-center justify-center overflow-hidden rounded-full font-medium text-white {sizeClass} {src
+		? ''
+		: bgColor} {className}"
 >
 	{#if src}
-		<img 
-			{src} 
-			alt="{name || email || 'User'}'s avatar" 
+		<img
+			{src}
+			alt="{name || email || 'User'}'s avatar"
 			class="h-full w-full object-cover"
 			loading="lazy"
 		/>
@@ -102,4 +104,4 @@
 	{:else}
 		<User class={iconSizeClass} />
 	{/if}
-</div> 
+</div>

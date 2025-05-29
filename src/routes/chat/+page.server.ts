@@ -21,7 +21,8 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 	// Fetch existing conversations for the current user
 	const { data: conversations, error: conversationsError } = await supabase
 		.from('conversations')
-		.select(`
+		.select(
+			`
 			id,
 			user_a,
 			user_b,
@@ -29,7 +30,8 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 			updated_at,
 			user_a_profile:users!conversations_user_a_fkey(id, email, profiles(name, avatar_url)),
 			user_b_profile:users!conversations_user_b_fkey(id, email, profiles(name, avatar_url))
-		`)
+		`
+		)
 		.or(`user_a.eq.${user?.id},user_b.eq.${user?.id}`)
 		.order('updated_at', { ascending: false });
 
@@ -44,4 +46,4 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 			relevantTables: ['users', 'profiles', 'conversations', 'messages']
 		}
 	};
-}; 
+};

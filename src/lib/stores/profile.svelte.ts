@@ -33,15 +33,15 @@ export const profileStore = {
 	get currentProfile(): Profile | null {
 		return userStore.user;
 	},
-	
+
 	get profiles(): Profile[] {
 		return profileState.profiles;
 	},
-	
+
 	get loading(): boolean {
 		return profileState.loading;
 	},
-	
+
 	get error(): string | null {
 		return profileState.error;
 	},
@@ -70,11 +70,7 @@ export const profileStore = {
 				interests: null
 			};
 
-			const { data, error } = await supabase
-				.from('profiles')
-				.insert(profileData)
-				.select()
-				.single();
+			const { data, error } = await supabase.from('profiles').insert(profileData).select().single();
 
 			if (error) throw error;
 			userStore.user = data;
@@ -92,7 +88,7 @@ export const profileStore = {
 		try {
 			this.setLoading(true);
 			this.setError(null);
-			
+
 			// Add updated_at timestamp
 			const updateData = {
 				...updates,
@@ -154,18 +150,17 @@ export const profileStore = {
 				.from('profile-pictures')
 				.upload(filePath, compressedFile, {
 					upsert: true
-				});		
-				
-			const { data: publicUrlData} = supabase.storage
+				});
+
+			const { data: publicUrlData } = supabase.storage
 				.from('profile-pictures')
 				.getPublicUrl(filePath);
-
 
 			if (uploadError) throw uploadError;
 
 			// Update profile with the file path
 			const cacheBuster = `?cache=${Date.now()}`;
-			await this.updateProfile({ avatar_url: publicUrlData.publicUrl+cacheBuster });	
+			await this.updateProfile({ avatar_url: publicUrlData.publicUrl + cacheBuster });
 
 			return filePath;
 		} catch (error) {
@@ -180,4 +175,4 @@ export const profileStore = {
 	reset(): void {
 		Object.assign(profileState, createProfileState());
 	}
-}; 
+};

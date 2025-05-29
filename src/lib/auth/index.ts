@@ -2,4 +2,4 @@
 export * from './types.js';
 export * from './validation.js';
 export * from './demo-user.js';
-export * from './auth-service.js'; 
+export * from './auth-service.js';

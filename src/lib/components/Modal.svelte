@@ -59,21 +59,23 @@
 				tabindex="0"
 			>
 				{#if title || closable}
-					<div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+					<div
+						class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700"
+					>
 						{#if title}
 							<h2 id="modal-title" class="text-lg font-semibold text-gray-900 dark:text-white">
 								{title}
 							</h2>
 						{/if}
 						{#if closable}
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => onClose?.()}
-								class="ml-auto"
-							>
+							<Button variant="ghost" size="sm" onclick={() => onClose?.()} class="ml-auto">
 								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M6 18L18 6M6 6l12 12"
+									/>
 								</svg>
 							</Button>
 						{/if}
@@ -86,4 +88,4 @@
 			</div>
 		</div>
 	</div>
-{/if} 
+{/if}

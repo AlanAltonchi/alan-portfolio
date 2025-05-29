@@ -13,7 +13,8 @@ export class ConversationService {
 		const { data, error } = await this.supabase
 			.from('conversations')
 			.insert(conversationData)
-			.select(`
+			.select(
+				`
 				id,
 				user_a,
 				user_b,
@@ -21,7 +22,8 @@ export class ConversationService {
 				updated_at,
 				user_a_profile:users!conversations_user_a_fkey(id, email, profiles(name, avatar_url)),
 				user_b_profile:users!conversations_user_b_fkey(id, email, profiles(name, avatar_url))
-			`)
+			`
+			)
 			.single();
 
 		if (error) {
@@ -46,10 +48,7 @@ export class ConversationService {
 		}
 
 		// Delete the conversation
-		const { error } = await this.supabase
-			.from('conversations')
-			.delete()
-			.eq('id', conversationId);
+		const { error } = await this.supabase.from('conversations').delete().eq('id', conversationId);
 
 		if (error) {
 			console.error('Error deleting conversation:', error);
@@ -69,9 +68,7 @@ export class ConversationService {
 	private async cleanupImages(messagesWithImages: any[]): Promise<void> {
 		const imagePaths = messagesWithImages
 			.map((msg: { image_url: string | null }) => msg.image_url)
-			.filter((url: string | null): url is string => 
-				url !== null && url.includes('chat-images/')
-			)
+			.filter((url: string | null): url is string => url !== null && url.includes('chat-images/'))
 			.map((url: string) => {
 				if (url.includes('chat-images/')) {
 					const parts = url.split('chat-images/');
@@ -83,10 +80,8 @@ export class ConversationService {
 			.filter((path: string | null): path is string => path !== null);
 
 		if (imagePaths.length > 0) {
-			const { error } = await this.supabase.storage
-				.from('chat-images')
-				.remove(imagePaths);
-			
+			const { error } = await this.supabase.storage.from('chat-images').remove(imagePaths);
+
 			if (error) {
 				console.error('Error deleting images:', error);
 			}
@@ -179,11 +174,7 @@ export class MessageService {
 export class TypingService {
 	constructor(private supabase: SupabaseClient) {}
 
-	async start(
-		conversationId: string,
-		userId: string,
-		isSimulator: boolean = false
-	): Promise<void> {
+	async start(conversationId: string, userId: string, isSimulator: boolean = false): Promise<void> {
 		await this.supabase.from('typing_status').upsert(
 			{
 				conversation_id: conversationId,
@@ -198,11 +189,7 @@ export class TypingService {
 		);
 	}
 
-	async stop(
-		conversationId: string,
-		userId: string,
-		isSimulator: boolean = false
-	): Promise<void> {
+	async stop(conversationId: string, userId: string, isSimulator: boolean = false): Promise<void> {
 		await this.supabase
 			.from('typing_status')
 			.delete()
@@ -230,9 +217,9 @@ export class ImageUploadService {
 				return null;
 			}
 
-			const { data: { publicUrl } } = this.supabase.storage
-				.from('chat-images')
-				.getPublicUrl(filePath);
+			const {
+				data: { publicUrl }
+			} = this.supabase.storage.from('chat-images').getPublicUrl(filePath);
 
 			return publicUrl;
 		} catch (error) {
@@ -240,4 +227,4 @@ export class ImageUploadService {
 			return null;
 		}
 	}
-} 
+}

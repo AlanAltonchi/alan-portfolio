@@ -11,16 +11,12 @@ export const actions: Actions = {
 			const userData = JSON.parse(formData.get('userData') as string);
 
 			// Create admin client with service role
-			const supabaseAdmin = createClient(
-				PUBLIC_SUPABASE_URL,
-				SUPABASE_SERVICE_ROLE_KEY,
-				{
-					auth: {
-						autoRefreshToken: false,
-						persistSession: false
-					}
+			const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+				auth: {
+					autoRefreshToken: false,
+					persistSession: false
 				}
-			);
+			});
 
 			// Create user with admin client (bypasses email confirmation)
 			const { data: user, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -40,7 +36,6 @@ export const actions: Actions = {
 				return fail(400, { error: createError.message });
 			}
 
-
 			// Return success with user data
 			return {
 				success: true,
@@ -55,4 +50,4 @@ export const actions: Actions = {
 			return fail(500, { error: 'Failed to create demo user' });
 		}
 	}
-}; 
+};

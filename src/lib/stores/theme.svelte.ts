@@ -25,7 +25,7 @@ function updateDocumentClass(theme: Theme) {
 
 export const themeState = $state({
 	current: getInitialTheme(),
-	
+
 	set(theme: Theme) {
 		this.current = theme;
 		if (browser) {
@@ -33,7 +33,7 @@ export const themeState = $state({
 		}
 		updateDocumentClass(theme);
 	},
-	
+
 	toggle() {
 		const newTheme = this.current === 'dark' ? 'light' : 'dark';
 		this.set(newTheme);
@@ -43,7 +43,7 @@ export const themeState = $state({
 // Initialize theme on first load
 if (browser) {
 	updateDocumentClass(themeState.current);
-	
+
 	// Listen for system theme changes when in auto mode
 	const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 	mediaQuery.addEventListener('change', () => {
@@ -51,4 +51,4 @@ if (browser) {
 			updateDocumentClass('auto');
 		}
 	});
-} 
+}

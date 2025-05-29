@@ -23,4 +23,4 @@ export interface AuthResult {
 	error?: string;
 	user?: any;
 	session?: any;
-} 
+}

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { 
-		ProfileEditor, 
-		ProfileViewer, 
+	import {
+		ProfileEditor,
+		ProfileViewer,
 		ProfilePageHeader,
 		ProfileLoadingState,
 		ProfileErrorState,
@@ -35,7 +35,7 @@
 
 {#if authStore.isAuthenticated}
 	<div class="space-y-6">
-		<ProfilePageHeader onEditClick={() => showEditor = true} />
+		<ProfilePageHeader onEditClick={() => (showEditor = true)} />
 
 		{#if profileStore.loading}
 			<ProfileLoadingState />
@@ -49,4 +49,4 @@
 	<ProfileEditor bind:open={showEditor} />
 {:else}
 	<AuthRequiredState />
-{/if} 
+{/if}

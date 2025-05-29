@@ -25,7 +25,8 @@
 		children
 	}: Props = $props();
 
-	const baseTabClasses = 'inline-flex cursor-pointer items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+	const baseTabClasses =
+		'inline-flex cursor-pointer items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
 	const variantClasses = {
 		default: {
@@ -49,7 +50,7 @@
 	};
 
 	function handleTabClick(tabId: string) {
-		if (tabs.find(tab => tab.id === tabId)?.disabled) return;
+		if (tabs.find((tab) => tab.id === tabId)?.disabled) return;
 		onTabChange?.(tabId);
 	}
 </script>
@@ -59,7 +60,10 @@
 	<div class="flex {variantClasses[variant].container}">
 		{#each tabs as tab}
 			<button
-				class="{baseTabClasses} {sizeClasses[size]} {variantClasses[variant].tab} {activeTab === tab.id ? variantClasses[variant].active : variantClasses[variant].inactive}"
+				class="{baseTabClasses} {sizeClasses[size]} {variantClasses[variant].tab} {activeTab ===
+				tab.id
+					? variantClasses[variant].active
+					: variantClasses[variant].inactive}"
 				disabled={tab.disabled}
 				onclick={() => handleTabClick(tab.id)}
 				role="tab"
@@ -76,4 +80,4 @@
 	<div class="mt-4">
 		{@render children({ activeTab })}
 	</div>
-</div> 
+</div>

@@ -24,35 +24,35 @@ function createAuthState(): AuthState {
 export const authState = $state(createAuthState());
 
 export let userStore: UserStore = $state({
-	user: null,
+	user: null
 });
 
 export const setUserProfile = (profile: Profile | null) => {
 	userStore.user = profile;
-}
+};
 
 export const authStore = {
 	// Getters
 	get user() {
 		return authState.user;
 	},
-	
+
 	get session() {
 		return authState.session;
 	},
-	
+
 	get loading() {
 		return authState.loading;
 	},
-	
+
 	get initialized() {
 		return authState.initialized;
 	},
-	
+
 	get isAuthenticated() {
 		return !!authState.session && !!authState.user;
 	},
-	
+
 	// Actions
 	setAuth(session: Session | null, user: User | null) {
 		authState.session = session;
@@ -60,19 +60,19 @@ export const authStore = {
 		authState.loading = false;
 		authState.initialized = true;
 	},
-	
+
 	setLoading(loading: boolean) {
 		authState.loading = loading;
 	},
-	
+
 	clearAuth() {
 		authState.session = null;
 		authState.user = null;
 		authState.loading = false;
 		authState.initialized = true;
 	},
-	
+
 	reset() {
 		Object.assign(authState, createAuthState());
 	}
-}; 
+};

@@ -3,12 +3,7 @@
 	import { formatTime, renderMarkdown } from '$lib/utils/chat';
 	import type { Message, ConversationWithUsers } from '$lib/types';
 
-	let { 
-		message,
-		conversation,
-		currentUserId,
-		onImageLoad
-	} = $props<{
+	let { message, conversation, currentUserId, onImageLoad } = $props<{
 		message: Message;
 		conversation: ConversationWithUsers;
 		currentUserId: string;
@@ -18,17 +13,18 @@
 	const metadata = $derived(message.metadata as { from_simulator?: boolean } | null);
 	const isFromSimulator = $derived(metadata?.from_simulator === true);
 	const isFromCurrentUser = $derived(message.sender_id === currentUserId && !isFromSimulator);
-	
+
 	const otherUser = $derived(
-		isFromCurrentUser || isFromSimulator ? null :
-		conversation.user_a === currentUserId 
-			? conversation.user_b_profile 
-			: conversation.user_a_profile
+		isFromCurrentUser || isFromSimulator
+			? null
+			: conversation.user_a === currentUserId
+				? conversation.user_b_profile
+				: conversation.user_a_profile
 	);
 
 	const currentUserProfile = $derived(
-		conversation.user_a === currentUserId 
-			? conversation.user_a_profile 
+		conversation.user_a === currentUserId
+			? conversation.user_a_profile
 			: conversation.user_b_profile
 	);
 
@@ -50,14 +46,22 @@
 			/>
 		</div>
 	{/if}
-	
+
 	<div class="max-w-xs lg:max-w-md">
 		<div
-			class="rounded-lg {message.image_url && !message.content ? '' : 'px-4 py-2'} {isFromCurrentUser
-				? message.image_url && !message.content ? '' : 'bg-blue-500 text-white'
+			class="rounded-lg {message.image_url && !message.content
+				? ''
+				: 'px-4 py-2'} {isFromCurrentUser
+				? message.image_url && !message.content
+					? ''
+					: 'bg-blue-500 text-white'
 				: isFromSimulator
-					? message.image_url && !message.content ? '' : 'bg-green-500 text-white'
-					: message.image_url && !message.content ? '' : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'}"
+					? message.image_url && !message.content
+						? ''
+						: 'bg-green-500 text-white'
+					: message.image_url && !message.content
+						? ''
+						: 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'}"
 		>
 			{#if message.content}
 				{#await getRenderedContent()}
@@ -74,17 +78,17 @@
 					<div class="text-sm text-red-500">Error rendering content</div>
 				{/await}
 			{/if}
-			
+
 			{#if message.image_url}
-				<img 
-					src={message.image_url} 
-					alt="Shared img" 
-					class="{message.content ? 'mt-2' : ''} max-w-xs max-h-64 object-contain rounded"
+				<img
+					src={message.image_url}
+					alt="Shared img"
+					class="{message.content ? 'mt-2' : ''} max-h-64 max-w-xs rounded object-contain"
 					onload={onImageLoad}
 				/>
 			{/if}
 		</div>
-		
+
 		<div
 			class="mt-1 text-xs text-gray-500 dark:text-gray-400 {isFromCurrentUser
 				? 'text-right'
@@ -105,7 +109,7 @@
 			{/if}
 		</div>
 	</div>
-	
+
 	{#if isFromCurrentUser}
 		<div class="flex-shrink-0">
 			<Avatar
@@ -116,4 +120,4 @@
 			/>
 		</div>
 	{/if}
-</div> 
+</div>

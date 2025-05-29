@@ -16,12 +16,11 @@ This directory contains TypeScript type definitions that reflect the Supabase da
 import type { User, Task, Message } from '$lib/types';
 
 const user: User = {
-  id: '123',
-  email: 'user@example.com',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: null
+	id: '123',
+	email: 'user@example.com',
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: null
 };
-
 ```
 
 ### Extended Types with Relationships
@@ -31,21 +30,21 @@ import type { MessageWithSender, UserWithProfile } from '$lib/types';
 
 // For joined data
 const messageWithSender: MessageWithSender = {
-  id: '456',
-  content: 'Hello!',
-  sender_id: '123',
-  receiver_id: '789',
-  // ... other message fields
-  sender: {
-    id: '123',
-    email: 'sender@example.com',
-    // ... other user fields
-  },
-  receiver: {
-    id: '789',
-    email: 'receiver@example.com',
-    // ... other user fields
-  }
+	id: '456',
+	content: 'Hello!',
+	sender_id: '123',
+	receiver_id: '789',
+	// ... other message fields
+	sender: {
+		id: '123',
+		email: 'sender@example.com'
+		// ... other user fields
+	},
+	receiver: {
+		id: '789',
+		email: 'receiver@example.com'
+		// ... other user fields
+	}
 };
 ```
 
@@ -56,22 +55,22 @@ import type { ApiResponse, PaginatedResponse } from '$lib/types';
 
 // For single item responses
 const userResponse: ApiResponse<User> = {
-  data: user,
-  error: null,
-  success: true
+	data: user,
+	error: null,
+	success: true
 };
 
 // For paginated responses
 const tasksResponse: PaginatedResponse<Task> = {
-  data: [task1, task2, task3],
-  error: null,
-  success: true,
-  pagination: {
-    page: 1,
-    limit: 10,
-    total: 25,
-    hasMore: true
-  }
+	data: [task1, task2, task3],
+	error: null,
+	success: true,
+	pagination: {
+		page: 1,
+		limit: 10,
+		total: 25,
+		hasMore: true
+	}
 };
 ```
 
@@ -92,19 +91,22 @@ supabase gen types typescript --project-id yyotaxglerwhtejhwguq > src/lib/types/
 ## Best Practices
 
 1. **Always use the appropriate type variant:**
+
    - `User` for reading data
    - `UserInsert` for creating records
    - `UserUpdate` for updating records
 
 2. **Import from the main index:**
+
    ```typescript
    import type { User, Task, Message } from '$lib/types';
    ```
 
 3. **Create extended types for complex queries:**
+
    ```typescript
    export type TaskWithUser = Task & {
-     user: UserWithProfile;
+   	user: UserWithProfile;
    };
    ```
 
@@ -119,4 +121,4 @@ supabase gen types typescript --project-id yyotaxglerwhtejhwguq > src/lib/types/
 - **IDE autocomplete** - Better developer experience
 - **Refactoring safety** - Changes propagate through codebase
 - **Documentation** - Types serve as living documentation
-- **API consistency** - Ensures frontend/backend alignment 
+- **API consistency** - Ensures frontend/backend alignment

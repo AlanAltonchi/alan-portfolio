@@ -31,14 +31,14 @@ export function createInteractionHandlers(
 ) {
 	const shouldMarkAsRead = (target: EventTarget | null): boolean => {
 		if (!target || !(target instanceof Element)) return false;
-		
+
 		// Don't mark as read if interaction is within the simulator
 		if (target.closest('[data-simulator="true"]')) return false;
-		
+
 		// Only mark as read if interaction is within the main chat area
 		const chatPanel = target.closest('.chat-panel');
 		const conversation = getSelectedConversation();
-		
+
 		return !!(conversation && isWindowFocused() && chatPanel);
 	};
 
@@ -103,7 +103,7 @@ export function createMessageInputHandlers(handlers: TypingHandlers) {
 
 	const handleInput = (event: Event) => {
 		handlers.startTyping();
-		
+
 		// Auto-resize textarea
 		const target = event.target as HTMLTextAreaElement;
 		if (target) {
@@ -113,4 +113,4 @@ export function createMessageInputHandlers(handlers: TypingHandlers) {
 	};
 
 	return { handleKeydown, handleInput };
-} 
+}

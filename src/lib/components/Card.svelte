@@ -8,12 +8,7 @@
 		children: Snippet;
 	}
 
-	let {
-		variant = 'default',
-		padding = 'md',
-		class: className = '',
-		children
-	}: Props = $props();	
+	let { variant = 'default', padding = 'md', class: className = '', children }: Props = $props();
 
 	const baseClasses = 'rounded-lg';
 
@@ -30,9 +25,11 @@
 		lg: 'p-8'
 	};
 
-	const classes = $derived(`${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${className}`);
+	const classes = $derived(
+		`${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${className}`
+	);
 </script>
 
 <div class={classes}>
 	{@render children()}
-</div> 
+</div>

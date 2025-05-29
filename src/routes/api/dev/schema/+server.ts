@@ -12,10 +12,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		return new Response(realSchema, {
 			headers: { 'Content-Type': 'text/plain' }
 		});
-
 	} catch (error) {
 		console.error('Error in schema endpoint:', error);
-		
+
 		const filteredTables = url.searchParams.get('tables')?.split(',') || ['users', 'profiles'];
 		const errorResponse = `-- Error generating database schema
 -- ${error}
@@ -202,4 +201,4 @@ CREATE INDEX idx_emails_read ON emails(read);
 	}
 
 	return schema;
-} 
+}

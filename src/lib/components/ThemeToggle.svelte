@@ -7,10 +7,7 @@
 		size?: 'sm' | 'md' | 'lg';
 	}
 
-	let {
-		variant = 'button',
-		size = 'md'
-	}: Props = $props();
+	let { variant = 'button', size = 'md' }: Props = $props();
 
 	let showDropdown = $state(false);
 
@@ -21,7 +18,7 @@
 	] as const;
 
 	function getCurrentThemeIcon(currentTheme: string) {
-		return themes.find(t => t.value === currentTheme)?.icon || '💻';
+		return themes.find((t) => t.value === currentTheme)?.icon || '💻';
 	}
 
 	function handleThemeSelect(newTheme: 'light' | 'dark' | 'auto') {
@@ -45,7 +42,7 @@
 		<Button
 			variant="ghost"
 			{size}
-			onclick={() => showDropdown = !showDropdown}
+			onclick={() => (showDropdown = !showDropdown)}
 			class="relative"
 			aria-label="Select theme"
 		>
@@ -56,10 +53,15 @@
 		</Button>
 
 		{#if showDropdown}
-			<div class="absolute right-0 top-full mt-1 w-32 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+			<div
+				class="absolute top-full right-0 mt-1 w-32 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+			>
 				{#each themes as themeOption}
 					<button
-						class="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 {themeState.current === themeOption.value ? 'bg-gray-100 dark:bg-gray-700' : ''}"
+						class="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 {themeState.current ===
+						themeOption.value
+							? 'bg-gray-100 dark:bg-gray-700'
+							: ''}"
 						onclick={() => handleThemeSelect(themeOption.value)}
 					>
 						<span class="mr-2">{themeOption.icon}</span>
@@ -72,8 +74,10 @@
 {/if}
 
 <!-- Close dropdown when clicking outside -->
-<svelte:window onclick={(e) => {
-	if (showDropdown && e.target instanceof Element && !e.target.closest('.relative')) {
-		showDropdown = false;
-	}
-}} /> 
+<svelte:window
+	onclick={(e) => {
+		if (showDropdown && e.target instanceof Element && !e.target.closest('.relative')) {
+			showDropdown = false;
+		}
+	}}
+/>

@@ -64,46 +64,47 @@
 {#if open}
 	<!-- Backdrop -->
 	<div
-		
 		class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
 		onclick={handleBackdropClick}
 		role="presentation"
 	></div>
-	
+
 	<!-- Drawer -->
 	<div
 		in:fly={{ x: 512, duration: 300, opacity: 1 }}
 		out:fly={{ x: 512, duration: 300, opacity: 1 }}
-		class="fixed right-0 top-0 h-full w-[32rem] z-[101] bg-white shadow-lg dark:bg-gray-800 flex flex-col"
+		class="fixed top-0 right-0 z-[101] flex h-full w-[32rem] flex-col bg-white shadow-lg dark:bg-gray-800"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={title ? 'drawer-title' : undefined}
 		tabindex="0"
 	>
 		{#if title || closable}
-			<div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700 flex-shrink-0">
+			<div
+				class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700"
+			>
 				{#if title}
 					<h2 id="drawer-title" class="text-lg font-semibold text-gray-900 dark:text-white">
 						{title}
 					</h2>
 				{/if}
 				{#if closable}
-					<Button
-						variant="ghost"
-						size="sm"
-						onclick={() => onclose?.()}
-						class="ml-auto"
-					>
+					<Button variant="ghost" size="sm" onclick={() => onclose?.()} class="ml-auto">
 						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
 						</svg>
 					</Button>
 				{/if}
 			</div>
 		{/if}
 
-		<div class="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+		<div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
 			{@render children()}
 		</div>
 	</div>
-{/if} 
+{/if}

@@ -31,4 +31,4 @@ export { default as ConversationSidebar } from './chat/ConversationSidebar.svelt
 export { default as ChatHeader } from './chat/ChatHeader.svelte';
 export { default as MessageList } from './chat/MessageList.svelte';
 export { default as MessageInput } from './chat/MessageInput.svelte';
-export { default as MessageBubble } from './chat/MessageBubble.svelte'; 
+export { default as MessageBubble } from './chat/MessageBubble.svelte';

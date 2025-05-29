@@ -104,7 +104,9 @@ export function createInterestsManager(initialInterests: string[] = []) {
 	}
 
 	return {
-		get interests() { return interests; },
+		get interests() {
+			return interests;
+		},
 		addInterest,
 		removeInterest,
 		setInterests
@@ -149,9 +151,9 @@ export function createAvatarManager() {
 		// Prevent unnecessary calls if the path hasn't changed
 		if (avatarPath === null && avatarState.currentUrl === null) return;
 		if (avatarPath && avatarState.currentUrl && avatarState.currentUrl.includes(avatarPath)) return;
-		
+
 		const newUrl = await loadAvatarUrl(supabase, avatarPath);
-		
+
 		// Only update if the URL actually changed
 		if (newUrl !== avatarState.currentUrl) {
 			avatarState.currentUrl = newUrl;
@@ -159,7 +161,9 @@ export function createAvatarManager() {
 	}
 
 	return {
-		get state() { return avatarState; },
+		get state() {
+			return avatarState;
+		},
 		handleFileChange,
 		clearAvatar,
 		loadCurrentAvatar
@@ -169,7 +173,10 @@ export function createAvatarManager() {
 /**
  * Form validation utilities
  */
-export function validateProfileForm(formData: ProfileFormData): { valid: boolean; errors: string[] } {
+export function validateProfileForm(formData: ProfileFormData): {
+	valid: boolean;
+	errors: string[];
+} {
 	const errors: string[] = [];
 
 	if (formData.name && formData.name.length > 100) {
@@ -188,4 +195,4 @@ export function validateProfileForm(formData: ProfileFormData): { valid: boolean
 		valid: errors.length === 0,
 		errors
 	};
-} 
+}

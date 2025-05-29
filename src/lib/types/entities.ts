@@ -12,32 +12,32 @@ export type TypingStatus = Tables<'typing_status'>;
 
 // Extended types with relationships (for when you need joined data)
 export type MessageWithSender = Message & {
-  sender: User;
-  receiver: User;
+	sender: User;
+	receiver: User;
 };
 
 // This matches the actual query structure from the server
 export type ConversationWithUsers = Conversation & {
-  user_a_profile: {
-    id: string;
-    email: string;
-    profiles: {
-      name: string | null;
-      avatar_url: string | null;
-    } | null;
-  };
-  user_b_profile: {
-    id: string;
-    email: string;
-    profiles: {
-      name: string | null;
-      avatar_url: string | null;
-    } | null;
-  };
+	user_a_profile: {
+		id: string;
+		email: string;
+		profiles: {
+			name: string | null;
+			avatar_url: string | null;
+		} | null;
+	};
+	user_b_profile: {
+		id: string;
+		email: string;
+		profiles: {
+			name: string | null;
+			avatar_url: string | null;
+		} | null;
+	};
 };
 
 export type UserWithProfile = User & {
-  profile: Profile;
+	profile: Profile;
 };
 
 // Task status enum (based on your database schema)
@@ -49,16 +49,16 @@ export type Timestamp = string;
 
 // API response types
 export type ApiResponse<T> = {
-  data: T | null;
-  error: string | null;
-  success: boolean;
+	data: T | null;
+	error: string | null;
+	success: boolean;
 };
 
 export type PaginatedResponse<T> = ApiResponse<T[]> & {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    hasMore: boolean;
-  };
-}; 
+	pagination: {
+		page: number;
+		limit: number;
+		total: number;
+		hasMore: boolean;
+	};
+};

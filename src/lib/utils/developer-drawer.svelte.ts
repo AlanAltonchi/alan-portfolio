@@ -21,7 +21,7 @@ export const DEVELOPER_TABS: TabData[] = [
 export async function loadPageCode(routePath: string): Promise<string> {
 	try {
 		const response = await fetch(`/api/dev/page-code?route=${encodeURIComponent(routePath)}`);
-		
+
 		if (response.ok) {
 			return await response.text();
 		} else {
@@ -42,7 +42,7 @@ export async function loadRLSRules(devData?: DevData): Promise<string> {
 		}
 
 		const response = await fetch(`/api/dev/rls-rules?tables=${devData?.relevantTables?.join(',')}`);
-		
+
 		if (response.ok) {
 			return await response.text();
 		} else {
@@ -63,7 +63,7 @@ export async function loadSchemaInfo(devData?: DevData): Promise<string> {
 		}
 
 		const response = await fetch(`/api/dev/schema?tables=${devData?.relevantTables?.join(',')}`);
-		
+
 		if (response.ok) {
 			return await response.text();
 		} else {
@@ -190,7 +190,7 @@ export function createTabDataLoader() {
 		devData?: DevData
 	): Promise<void> {
 		loading = true;
-		
+
 		try {
 			switch (activeTab) {
 				case 'page-code':
@@ -224,11 +224,19 @@ export function createTabDataLoader() {
 	}
 
 	return {
-		get loading() { return loading; },
-		get pageCode() { return pageCode; },
-		get rlsRules() { return rlsRules; },
-		get schemaInfo() { return schemaInfo; },
+		get loading() {
+			return loading;
+		},
+		get pageCode() {
+			return pageCode;
+		},
+		get rlsRules() {
+			return rlsRules;
+		},
+		get schemaInfo() {
+			return schemaInfo;
+		},
 		loadTabData,
 		downloadCurrentTab
 	};
-} 
+}

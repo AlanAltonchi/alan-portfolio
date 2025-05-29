@@ -11,15 +11,13 @@ export async function validateUserExists(
 	userId: string
 ): Promise<boolean> {
 	try {
-		
 		// Use the provided supabase client instead of creating a new one
 		const { data: profile, error: profileError } = await supabase
 			.from('profiles')
 			.select('id')
 			.eq('id', userId)
 			.single();
-		
-		
+
 		// Return true if no error and profile exists
 		return !profileError && !!profile;
 	} catch (error) {
@@ -40,26 +38,18 @@ export async function handleInvalidSession(supabase: SupabaseClient): Promise<vo
 /**
  * Loads user profile data
  */
-export async function loadUserProfile(
-	supabase: SupabaseClient,
-	userId: string
-): Promise<any> {
+export async function loadUserProfile(supabase: SupabaseClient, userId: string): Promise<any> {
 	try {
-		
-		const { data, error } = await supabase
-			.from('profiles')
-			.select('*')
-			.eq('id', userId)
-			.single();
-		
+		const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
 		if (error) {
 			console.error('Error loading user profile:', error);
 			return null;
 		}
-		
+
 		return data;
 	} catch (error) {
 		console.error('Error loading user profile:', error);
 		return null;
 	}
-} 
+}

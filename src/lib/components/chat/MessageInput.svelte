@@ -4,7 +4,7 @@
 	import { createMessageInputHandlers } from '$lib/handlers/chat';
 	import type { ConversationWithUsers } from '$lib/types';
 
-	let { 
+	let {
 		newMessage = $bindable(),
 		conversation,
 		otherUserTyping,
@@ -49,18 +49,13 @@
 			onchange={onImageUpload}
 			class="hidden"
 		/>
-		<Button 
-			variant="ghost" 
-			size="sm" 
-			onclick={() => fileInput?.click()} 
-			title="Upload image"
-		>
+		<Button variant="ghost" size="sm" onclick={() => fileInput?.click()} title="Upload image">
 			<Image class="h-4 w-4" />
 		</Button>
 		<textarea
 			bind:value={newMessage}
 			placeholder="Type a message..."
-			class="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
+			class="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-blue-400"
 			rows="1"
 			onkeydown={inputHandlers.handleKeydown}
 			oninput={inputHandlers.handleInput}
@@ -71,14 +66,14 @@
 	</div>
 
 	<!-- Keyboard Shortcuts Info -->
-	<div class="ml-14 mt-2 text-xs text-gray-500 dark:text-gray-400">
+	<div class="mt-2 ml-14 text-xs text-gray-500 dark:text-gray-400">
 		<span class="font-medium">Press Enter to send</span>
 		<span class="ml-2">• Shift+Enter for new line</span>
 	</div>
 
 	<!-- Markdown Info -->
-	<div class="ml-14 mt-1 text-xs text-gray-500 dark:text-gray-400">
+	<div class="mt-1 ml-14 text-xs text-gray-500 dark:text-gray-400">
 		<span class="font-medium">Markdown supported:</span>
 		<span class="ml-1">**bold**, *italic*, `code`, [links](url), > quotes, - lists</span>
 	</div>
-</div> 
+</div>

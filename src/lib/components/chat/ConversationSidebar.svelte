@@ -4,7 +4,7 @@
 	import { formatTime, getOtherUser } from '$lib/utils/chat';
 	import type { ConversationWithUsers } from '$lib/types';
 
-	let { 
+	let {
 		conversations,
 		selectedConversation,
 		currentUserId,
@@ -64,7 +64,7 @@
 				{/each}
 			</div>
 		{/if}
-		
+
 		<!-- Self Chat Option -->
 		{#if conversations.length === 0}
 			<button
@@ -90,4 +90,4 @@
 			</button>
 		{/if}
 	</div>
-</div> 
+</div>

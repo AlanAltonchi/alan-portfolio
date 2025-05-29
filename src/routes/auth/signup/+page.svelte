@@ -30,7 +30,7 @@
 	async function handleDemoSignInSuccess(email: string) {
 		try {
 			const result = await authService.signInDemoUser(email);
-			
+
 			if (!result.success) {
 				error = result.error || 'Demo sign-in failed';
 				demoLoading = false;
@@ -82,9 +82,9 @@
 	}
 </script>
 
-<AuthLayout 
+<AuthLayout
 	title="Create your account"
-	subtitle='Or <a href="/auth/login" class="text-blue-600 hover:text-blue-500 dark:text-blue-400">sign in to existing account</a>'
+	subtitle="Or <a href='/auth/login' class='text-blue-600 hover:text-blue-500 dark:text-blue-400'>sign in to existing account</a>"
 	showCard={false}
 >
 	{#snippet children()}
@@ -97,22 +97,24 @@
 				<div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
 			</div>
 			<div class="relative flex justify-center text-sm">
-				<span class="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+				<span class="bg-white px-2 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
 					Or create a permanent account
 				</span>
 			</div>
 		</div>
 
 		<!-- Signup Form -->
-		<div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+		<div
+			class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+		>
 			{#if success}
-				<div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-					<p class="text-green-800 dark:text-green-200 text-sm">{success}</p>
+				<div
+					class="mb-6 rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
+				>
+					<p class="text-sm text-green-800 dark:text-green-200">{success}</p>
 					{#if !success.includes('Demo account')}
 						<div class="mt-4">
-							<Button variant="outline" onclick={() => goto('/auth/login')}>
-								Go to Sign In
-							</Button>
+							<Button variant="outline" onclick={() => goto('/auth/login')}>Go to Sign In</Button>
 						</div>
 					{/if}
 				</div>
@@ -133,11 +135,14 @@
 			<div class="mt-6 text-center">
 				<p class="text-sm text-gray-600 dark:text-gray-400">
 					Already have an account?
-					<a href="/auth/login" class="text-blue-600 hover:text-blue-500 dark:text-blue-400 font-medium">
+					<a
+						href="/auth/login"
+						class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+					>
 						Sign in here
 					</a>
 				</p>
 			</div>
 		</div>
 	{/snippet}
-</AuthLayout> 
+</AuthLayout>

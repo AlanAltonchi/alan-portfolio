@@ -3,11 +3,11 @@
 	import { supabase } from '$lib/db.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
-	import { 
-		createAvatarManager, 
-		createInterestsManager, 
+	import {
+		createAvatarManager,
+		createInterestsManager,
 		validateProfileForm,
-		type ProfileFormData 
+		type ProfileFormData
 	} from '$lib/utils/profile.svelte';
 
 	let { open = $bindable(false) } = $props();
@@ -37,13 +37,13 @@
 			if (formData.bio !== (profile.bio || '')) {
 				formData.bio = profile.bio || '';
 			}
-			
+
 			const profileInterests = profile.interests || [];
 			if (JSON.stringify(formData.interests) !== JSON.stringify(profileInterests)) {
 				formData.interests = profileInterests;
 				interestsManager.setInterests(profileInterests);
 			}
-			
+
 			// Load avatar when modal opens or when profile changes
 			if (open) {
 				avatarManager.loadCurrentAvatar(supabase, profile.avatar_url);
@@ -123,7 +123,7 @@
 	function handleClose() {
 		open = false;
 		avatarManager.clearAvatar();
-		
+
 		// Reset form data to current profile
 		if (profileStore.currentProfile) {
 			formData.name = profileStore.currentProfile.name || '';
@@ -153,9 +153,17 @@
 						class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
 					>
 						{#if avatarManager.state.preview}
-							<img src={avatarManager.state.preview} alt="Avatar preview" class="h-full w-full object-cover" />
+							<img
+								src={avatarManager.state.preview}
+								alt="Avatar preview"
+								class="h-full w-full object-cover"
+							/>
 						{:else if avatarManager.state.currentUrl}
-							<img src={avatarManager.state.currentUrl} alt="Current avatar" class="h-full w-full object-cover" />
+							<img
+								src={avatarManager.state.currentUrl}
+								alt="Current avatar"
+								class="h-full w-full object-cover"
+							/>
 						{:else}
 							<svg class="h-8 w-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
 								<path

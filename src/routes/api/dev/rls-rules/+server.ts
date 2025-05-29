@@ -35,12 +35,11 @@ export const GET: RequestHandler = async ({ url }) => {
 FROM pg_policies 
 ORDER BY schemaname, tablename, policyname`;
 
-		const { data: rawData, error } = await supabase
-			.rpc('exec_sql', { query: baseQuery });
+		const { data: rawData, error } = await supabase.rpc('exec_sql', { query: baseQuery });
 
 		if (error) {
 			console.error('Error fetching RLS policies:', error);
-			
+
 			// Return error message with fallback
 			const errorResponse = `-- Error fetching RLS policies from database
 -- ${error.message || error}
@@ -57,7 +56,7 @@ ORDER BY schemaname, tablename, policyname`;
 
 		// The exec_sql function returns JSON data, extract the array
 		let policyData: PolicyRow[] = [];
-		
+
 		try {
 			if (rawData && Array.isArray(rawData)) {
 				policyData = rawData as PolicyRow[];
@@ -75,7 +74,7 @@ ORDER BY schemaname, tablename, policyname`;
 						headers: { 'Content-Type': 'text/plain' }
 					});
 				}
-				
+
 				// If it's a single object, wrap it in an array
 				policyData = [rawData] as PolicyRow[];
 			} else {
@@ -83,7 +82,7 @@ ORDER BY schemaname, tablename, policyname`;
 			}
 		} catch (parseError) {
 			console.error('Error parsing policy data:', parseError);
-			
+
 			const errorResponse = `-- Error parsing policy data
 -- ${parseError}
 -- Raw data type: ${typeof rawData}
@@ -95,9 +94,8 @@ ORDER BY schemaname, tablename, policyname`;
 		}
 
 		// Filter policies by table if specified
-		const filteredPolicies = tables.length > 0 
-			? policyData.filter(p => tables.includes(p.tablename))
-			: policyData;
+		const filteredPolicies =
+			tables.length > 0 ? policyData.filter((p) => tables.includes(p.tablename)) : policyData;
 
 		// Format the policies as SQL
 		const formattedPolicies = formatPolicies(filteredPolicies || [], tables);
@@ -105,10 +103,9 @@ ORDER BY schemaname, tablename, policyname`;
 		return new Response(formattedPolicies, {
 			headers: { 'Content-Type': 'text/plain' }
 		});
-
 	} catch (error) {
 		console.error('Error in RLS rules endpoint:', error);
-		
+
 		const errorResponse = `-- Error fetching RLS policies
 -- ${error}
 
@@ -131,7 +128,7 @@ ${tables.length > 0 ? `-- Filtered for tables: ${tables.join(', ')}` : '-- All t
 
 	if (policies && policies.length > 0) {
 		let currentTable = '';
-		
+
 		for (const policy of policies) {
 			// Add table header when we encounter a new table
 			if (policy.tablename !== currentTable) {

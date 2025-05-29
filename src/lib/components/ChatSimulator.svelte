@@ -13,11 +13,11 @@
 	import { Image, MessageCircle, Send, X } from 'lucide-svelte';
 	import { onDestroy, onMount } from 'svelte';
 
-	let { 
-		isOpen = $bindable(false), 
-		conversationId, 
-		currentUserId, 
-		supabase, 
+	let {
+		isOpen = $bindable(false),
+		conversationId,
+		currentUserId,
+		supabase,
 		conversation
 	} = $props<{
 		isOpen?: boolean;
@@ -37,10 +37,14 @@
 
 	// Initialize handlers
 	const dragHandler = createDragHandler();
-	const typingManager = conversationId && currentUserId ? 
-		createTypingManager(supabase, conversationId, currentUserId) : null;
-	const messageHandler = conversationId && currentUserId ? 
-		createMessageHandler(supabase, conversationId, currentUserId) : null;
+	const typingManager =
+		conversationId && currentUserId
+			? createTypingManager(supabase, conversationId, currentUserId)
+			: null;
+	const messageHandler =
+		conversationId && currentUserId
+			? createMessageHandler(supabase, conversationId, currentUserId)
+			: null;
 
 	// Get user profiles
 	const { mainUser, otherUser } = getUserProfiles(conversation, currentUserId);
@@ -76,7 +80,9 @@
 			supabase,
 			conversationId,
 			handleMessageUpdate,
-			() => { isOpen = false; },
+			() => {
+				isOpen = false;
+			},
 			(isTyping) => typingManager?.setMainUserTyping(isTyping)
 		);
 
@@ -124,7 +130,7 @@
 
 	async function loadMessages() {
 		if (!messageHandler) return;
-		
+
 		messages = await messageHandler.loadMessages();
 		setTimeout(scrollToBottom, 100);
 	}
@@ -219,7 +225,10 @@
 		</div>
 
 		<!-- Messages -->
-		<div bind:this={messagesContainer} class="flex-1 space-y-4 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800">
+		<div
+			bind:this={messagesContainer}
+			class="scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 dark:scrollbar-thumb-blue-700 dark:scrollbar-track-gray-800 flex-1 space-y-4 overflow-y-auto p-4"
+		>
 			{#each messages as message}
 				{@const messageFromSimulator = isFromSimulator(message)}
 				<div class="flex {messageFromSimulator ? 'justify-end' : 'justify-start'} gap-2">
@@ -235,9 +244,15 @@
 					{/if}
 					<div class="max-w-xs">
 						<div
-							class="rounded-lg {message.image_url && !message.content ? '' : 'px-4 py-2'} {messageFromSimulator
-								? message.image_url && !message.content ? '' : 'bg-blue-500 text-white'
-								: message.image_url && !message.content ? '' : 'bg-green-500 text-white'}"
+							class="rounded-lg {message.image_url && !message.content
+								? ''
+								: 'px-4 py-2'} {messageFromSimulator
+								? message.image_url && !message.content
+									? ''
+									: 'bg-blue-500 text-white'
+								: message.image_url && !message.content
+									? ''
+									: 'bg-green-500 text-white'}"
 						>
 							{#if message.content}
 								<div class="prose prose-sm prose-invert max-w-none text-sm">
@@ -245,9 +260,9 @@
 								</div>
 							{/if}
 							{#if message.image_url}
-								<img 
-									src={message.image_url} 
-									alt="Shared img" 
+								<img
+									src={message.image_url}
+									alt="Shared img"
 									class="{message.content ? 'mt-2' : ''} max-w-full rounded"
 									onload={() => scrollToBottom()}
 								/>
@@ -260,8 +275,8 @@
 						>
 							{formatTime(message.created_at)}
 							<span class="ml-1 text-xs">
-								{messageFromSimulator 
-									? `(${otherUser?.profiles?.name || 'Test User'})` 
+								{messageFromSimulator
+									? `(${otherUser?.profiles?.name || 'Test User'})`
 									: `(${mainUser?.profiles?.name || 'Main User'})`}
 							</span>
 							{#if messageFromSimulator}

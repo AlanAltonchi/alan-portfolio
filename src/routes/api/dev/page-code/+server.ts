@@ -5,7 +5,7 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const route = url.searchParams.get('route');
-	
+
 	if (!route) {
 		return json({ error: 'Route parameter is required' }, { status: 400 });
 	}
@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	try {
 		// Convert route to file path
 		let filePath: string;
-		
+
 		if (route === '/+page.svelte') {
 			filePath = join(process.cwd(), 'src/routes/+page.svelte');
 		} else {
@@ -23,11 +23,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		}
 
 		const content = await readFile(filePath, 'utf-8');
-		
+
 		return new Response(content, {
 			headers: {
-				'Content-Type': 'text/plain',
-			},
+				'Content-Type': 'text/plain'
+			}
 		});
 	} catch (error) {
 		// If file doesn't exist, return a helpful message
@@ -47,8 +47,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		return new Response(fallbackContent, {
 			headers: {
-				'Content-Type': 'text/plain',
-			},
+				'Content-Type': 'text/plain'
+			}
 		});
 	}
-}; 
+};
