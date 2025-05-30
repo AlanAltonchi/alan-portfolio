@@ -2,3 +2,50 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 @plugin 'tailwind-scrollbar';
+
+/* Global scrollbar styles */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: rgb(209 213 219) rgb(243 244 246); /* gray-300 on gray-100 */
+}
+
+/* Dark mode scrollbar colors */
+@media (prefers-color-scheme: dark) {
+	* {
+		scrollbar-color: rgb(75 85 99) rgb(31 41 55); /* gray-600 on gray-800 */
+	}
+}
+
+/* Webkit scrollbar styles for better cross-browser support */
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: rgb(243 244 246); /* gray-100 */
+}
+
+*::-webkit-scrollbar-thumb {
+	background: rgb(209 213 219); /* gray-300 */
+	border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: rgb(156 163 175); /* gray-400 */
+}
+
+/* Dark mode webkit scrollbar */
+@media (prefers-color-scheme: dark) {
+	*::-webkit-scrollbar-track {
+		background: rgb(31 41 55); /* gray-800 */
+	}
+	
+	*::-webkit-scrollbar-thumb {
+		background: rgb(75 85 99); /* gray-600 */
+	}
+	
+	*::-webkit-scrollbar-thumb:hover {
+		background: rgb(107 114 128); /* gray-500 */
+	}
+}

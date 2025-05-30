@@ -352,7 +352,7 @@
 		
 		<!-- Comments List -->
 		{#if comments.length > 0}
-			<div class="space-y-4 mt-6">
+			<div class="space-y-4 mt-6 max-h-[400px] overflow-y-auto">
 				{#each comments as comment}
 					<div class="flex gap-3">
 						<Avatar

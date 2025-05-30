@@ -265,7 +265,7 @@
 								{/if}
 							</div>
 							
-							<div class="space-y-1 max-h-64 overflow-y-auto">
+							<div class="space-y-1 max-h-[350px] overflow-y-auto">
 								{#each actionTypes as actionType}
 									<button
 										onclick={() => toggleActionFilter(actionType.value)}
@@ -305,7 +305,7 @@
 			{selectedActions.size > 0 ? 'No activities match your filters' : 'No activities yet'}
 		</div>
 	{:else}
-		<div class="space-y-2">
+		<div class="space-y-2 max-h-[500px] overflow-y-auto">
 			{#each activities as activity}
 				{@const Icon = getActivityIcon(activity.action)}
 				<div class="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md 
