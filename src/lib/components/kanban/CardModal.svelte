@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { supabase } from '$lib/db.svelte';
 	import { kanbanStore } from '$lib/stores/kanban.svelte';
-	import type { Card, CardUpdateInput } from '$lib/types/kanban';
+	import type { Card, UpdateCardInput } from '$lib/types/kanban';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Button from '$lib/components/Button.svelte';
@@ -37,11 +37,11 @@
 		if (!authStore.user) return;
 		
 		isSaving = true;
-		const updates: CardUpdateInput = {
+		const updates: UpdateCardInput = {
 			title,
 			description,
-			due_date: dueDate || null,
-			priority
+			due_date: dueDate || undefined,
+			priority: priority as 'low' | 'medium' | 'high' | 'urgent'
 		};
 		
 		const success = await kanbanStore.updateCard(card.id, updates);
@@ -54,7 +54,7 @@
 	async function deleteCard() {
 		if (!authStore.user || !confirm('Are you sure you want to delete this card?')) return;
 		
-		const success = await kanbanStore.deleteCard(card.board_id, card.id);
+		const success = await kanbanStore.deleteCard(card.id);
 		if (success) {
 			onClose();
 		}
@@ -66,10 +66,10 @@
 	let commentCount = $derived(card.comments?.length || 0);
 </script>
 
-<Modal {isOpen} {onClose} size="lg">
+<Modal {isOpen} {onClose} size="lg" title='Card Details'>
 	<div class="flex flex-col h-full max-h-[90vh]">
 		<!-- Header -->
-		<div class="flex items-start justify-between gap-4 p-6 border-b border-gray-200 dark:border-gray-700">
+		<div class="flex items-start justify-between gap-4 px-6 pb-6 border-b border-gray-200 dark:border-gray-700">
 			<div class="flex-1">
 				{#if isEditing}
 					<Input
@@ -93,13 +93,6 @@
 					{/if}
 				</div>
 			</div>
-			
-			<button
-				onclick={onClose}
-				class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-			>
-				<X class="w-5 h-5" />
-			</button>
 		</div>
 		
 		<!-- Tabs -->
@@ -262,7 +255,7 @@
 			{:else if activeTab === 'comments'}
 				<CardComments cardId={card.id} />
 			{:else if activeTab === 'activity'}
-				<ActivityFeed boardId={card.board_id} maxItems={20} />
+				<ActivityFeed boardId={card.board_id} cardId={card.id} maxItems={20} />
 			{/if}
 		</div>
 		

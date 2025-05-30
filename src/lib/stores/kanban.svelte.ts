@@ -116,7 +116,13 @@ class KanbanStore {
         .from('columns')
         .select(`
           *,
-          cards(*)
+          cards(
+            *,
+            card_label_assignments(
+              *,
+              card_labels(*)
+            )
+          )
         `)
         .eq('board_id', boardId)
         .order('position');
@@ -246,170 +252,348 @@ class KanbanStore {
 
   // Column operations
   async createColumn(input: CreateColumnInput) {
-    try {
-      // Ensure position is defined
-      let position = input.position;
-      if (position === undefined) {
-        const { data: columns } = await supabase
-          .from('columns')
-          .select('position')
-          .eq('board_id', input.board_id)
-          .order('position', { ascending: false })
-          .limit(1);
-
-        position = columns && columns.length > 0 ? columns[0].position + 1 : 0;
-      }
-
-      const { data, error } = await supabase
-        .from('columns')
-        .insert({
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    const tempId = `temp-col-${Date.now()}`;
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - add column immediately
+      () => {
+        if (!this.currentBoard) return;
+        
+        const position = input.position ?? (this.currentBoard.columns?.length || 0);
+        
+        const tempColumn: any = {
+          id: tempId,
           title: input.title,
           board_id: input.board_id,
-          position: position
-        })
-        .select()
-        .single();
+          position,
+          cards: [],
+          created_at: new Date().toISOString()
+        };
+        
+        if (!this.currentBoard.columns) this.currentBoard.columns = [];
+        this.currentBoard.columns.push(tempColumn);
+        this.currentBoard.columns.sort((a, b) => a.position - b.position);
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        // Ensure position is defined
+        let position = input.position;
+        if (position === undefined) {
+          const { data: columns } = await supabase
+            .from('columns')
+            .select('position')
+            .eq('board_id', input.board_id)
+            .order('position', { ascending: false })
+            .limit(1);
 
-      if (error) throw error;
+          position = columns && columns.length > 0 ? columns[0].position + 1 : 0;
+        }
 
-      if (this.currentBoard?.id === input.board_id) {
-        await this.loadBoard(input.board_id);
+        const { data, error } = await supabase
+          .from('columns')
+          .insert({
+            title: input.title,
+            board_id: input.board_id,
+            position: position
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Replace temp column with real column
+        if (this.currentBoard?.columns) {
+          const tempIndex = this.currentBoard.columns.findIndex(c => c.id === tempId);
+          if (tempIndex !== -1) {
+            this.currentBoard.columns[tempIndex] = {
+              ...data,
+              cards: []
+            };
+          }
+        }
+        
+        return data;
       }
-      return data;
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to create column';
-      console.error('Error creating column:', err);
-      throw err;
-    }
+    );
   }
 
   async updateColumn(columnId: string, input: UpdateColumnInput) {
-    try {
-      const { error } = await supabase
-        .from('columns')
-        .update(input)
-        .eq('id', columnId);
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - update column immediately
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        const columnIndex = this.currentBoard.columns.findIndex(c => c.id === columnId);
+        if (columnIndex !== -1) {
+          this.currentBoard.columns[columnIndex] = {
+            ...this.currentBoard.columns[columnIndex],
+            ...input
+          };
+        }
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        const { error } = await supabase
+          .from('columns')
+          .update(input)
+          .eq('id', columnId);
 
-      if (error) throw error;
-
-      if (this.currentBoard) {
-        await this.loadBoard(this.currentBoard.id);
+        if (error) throw error;
+        return true;
       }
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to update column';
-      console.error('Error updating column:', err);
-      throw err;
-    }
+    );
   }
 
   async deleteColumn(columnId: string) {
-    try {
-      const { error } = await supabase
-        .from('columns')
-        .delete()
-        .eq('id', columnId);
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - remove column immediately
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        this.currentBoard.columns = this.currentBoard.columns.filter(c => c.id !== columnId);
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        const { error } = await supabase
+          .from('columns')
+          .delete()
+          .eq('id', columnId);
 
-      if (error) throw error;
-
-      if (this.currentBoard) {
-        await this.loadBoard(this.currentBoard.id);
+        if (error) throw error;
+        return true;
       }
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to delete column';
-      console.error('Error deleting column:', err);
-      throw err;
-    }
+    );
   }
 
   // Card operations
   async createCard(input: CreateCardInput) {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
-      // Ensure position is defined
-      let position = input.position;
-      if (position === undefined) {
-        const { data: cards } = await supabase
-          .from('cards')
-          .select('position')
-          .eq('column_id', input.column_id)
-          .order('position', { ascending: false })
-          .limit(1);
-
-        position = cards && cards.length > 0 ? cards[0].position + 1 : 0;
-      }
-
-      const { data, error } = await supabase
-        .from('cards')
-        .insert({
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    const tempId = `temp-${Date.now()}`;
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - add card immediately
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        const column = this.currentBoard.columns.find(c => c.id === input.column_id);
+        if (!column) return;
+        
+        // Calculate position
+        const position = input.position ?? (column.cards?.length || 0);
+        
+        // Create temporary card
+        const tempCard: any = {
+          id: tempId,
           title: input.title,
           description: input.description || null,
           column_id: input.column_id,
           board_id: input.board_id,
-          position: position,
+          position,
           priority: input.priority || null,
           due_date: input.due_date || null,
-          created_by: user.user.id
-        })
-        .select()
-        .single();
+          created_at: new Date().toISOString(),
+          card_label_assignments: [],
+          assignees: [],
+          comments: [],
+          attachments: [],
+          checklists: [],
+          column: {
+            id: column.id,
+            title: column.title
+          }
+        };
+        
+        if (!column.cards) column.cards = [];
+        column.cards.push(tempCard);
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+        // Ensure position is defined
+        let position = input.position;
+        if (position === undefined) {
+          const { data: cards } = await supabase
+            .from('cards')
+            .select('position')
+            .eq('column_id', input.column_id)
+            .order('position', { ascending: false })
+            .limit(1);
 
-      // Track activity
-      await this.trackActivity(input.board_id, 'card_created', {
-        card_title: data.title,
-        column_id: input.column_id
-      });
+          position = cards && cards.length > 0 ? cards[0].position + 1 : 0;
+        }
 
-      if (this.currentBoard?.id === input.board_id) {
-        await this.loadBoard(input.board_id);
+        const { data, error } = await supabase
+          .from('cards')
+          .insert({
+            title: input.title,
+            description: input.description || null,
+            column_id: input.column_id,
+            board_id: input.board_id,
+            position: position,
+            priority: input.priority || null,
+            due_date: input.due_date || null,
+            created_by: user.user.id
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Track activity
+        await this.trackActivity(input.board_id, 'card_created', {
+          card_title: data.title,
+          column_id: input.column_id
+        });
+
+        // Replace temp card with real card
+        if (this.currentBoard?.columns) {
+          const column = this.currentBoard.columns.find(c => c.id === input.column_id);
+          if (column?.cards) {
+            const tempIndex = column.cards.findIndex(c => c.id === tempId);
+            if (tempIndex !== -1) {
+              column.cards[tempIndex] = {
+                ...data,
+                column: {
+                  id: column.id,
+                  title: column.title
+                },
+                card_label_assignments: [],
+                assignees: [],
+                comments: [],
+                attachments: [],
+                checklists: []
+              };
+            }
+          }
+        }
+        
+        return data;
       }
-      return data;
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to create card';
-      console.error('Error creating card:', err);
-      throw err;
-    }
+    );
   }
 
   async updateCard(cardId: string, input: UpdateCardInput) {
-    try {
-      const { error } = await supabase
-        .from('cards')
-        .update(input)
-        .eq('id', cardId);
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - update card immediately
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const cardIndex = column.cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1) {
+              column.cards[cardIndex] = {
+                ...column.cards[cardIndex],
+                ...input
+              };
+              break;
+            }
+          }
+        }
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        const { error } = await supabase
+          .from('cards')
+          .update(input)
+          .eq('id', cardId);
 
-      if (error) throw error;
-
-      if (this.currentBoard) {
-        await this.loadBoard(this.currentBoard.id);
+        if (error) throw error;
+        return true;
       }
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to update card';
-      console.error('Error updating card:', err);
-      throw err;
-    }
+    );
   }
 
   async deleteCard(cardId: string) {
-    try {
-      const { error } = await supabase
-        .from('cards')
-        .delete()
-        .eq('id', cardId);
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    let deletedCard: any = null;
+    let sourceColumn: any = null;
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - remove card immediately
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const cardIndex = column.cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1) {
+              deletedCard = column.cards[cardIndex];
+              sourceColumn = column;
+              column.cards.splice(cardIndex, 1);
+              break;
+            }
+          }
+        }
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        const { error } = await supabase
+          .from('cards')
+          .delete()
+          .eq('id', cardId);
 
-      if (error) throw error;
-
-      if (this.currentBoard) {
-        await this.loadBoard(this.currentBoard.id);
+        if (error) throw error;
+        return true;
       }
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to delete card';
-      console.error('Error deleting card:', err);
-      throw err;
-    }
+    );
   }
 
   async moveCard({ cardId, sourceColumnId, targetColumnId, newPosition }: MoveCardInput) {
@@ -503,9 +687,6 @@ class KanbanStore {
         // Reorder cards in both columns
         await this.reorderCards(sourceColumnId);
         await this.reorderCards(targetColumnId);
-        
-        // Reload board to ensure consistency
-        await this.loadBoard(this.currentBoard!.id);
       }
     );
   }
@@ -659,6 +840,16 @@ class KanbanStore {
         },
         (payload) => this.handleCardChange(payload)
       )
+      // Listen to card label assignment changes
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'card_label_assignments'
+        },
+        (payload) => this.handleCardLabelAssignmentChange(payload)
+      )
       // Listen to activity changes
       .on(
         'postgres_changes',
@@ -678,35 +869,168 @@ class KanbanStore {
   private handleBoardChange(payload: any) {
     console.log('Board change:', payload);
     if (this.currentBoard?.id === payload.new?.id || this.currentBoard?.id === payload.old?.id) {
-      // Reload board data for board changes
-      if (this.currentBoard) {
-        this.loadBoard(this.currentBoard.id);
+      // Update board properties optimistically if it's just a title/description change
+      if (payload.eventType === 'UPDATE' && payload.new && this.currentBoard) {
+        this.currentBoard.title = payload.new.title;
+        this.currentBoard.description = payload.new.description;
       }
     }
   }
 
   private handleColumnChange(payload: any) {
     console.log('Column change:', payload);
-    if (this.currentBoard) {
-      // Reload board to get updated columns
-      this.loadBoard(this.currentBoard.id);
+    if (this.currentBoard?.columns) {
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        // Update column properties optimistically
+        const columnIndex = this.currentBoard.columns.findIndex(c => c.id === payload.new.id);
+        if (columnIndex !== -1) {
+          this.currentBoard.columns[columnIndex] = {
+            ...this.currentBoard.columns[columnIndex],
+            ...payload.new
+          };
+        }
+      } else if (payload.eventType === 'INSERT' && payload.new) {
+        // Add new column if not already present (from optimistic update)
+        const exists = this.currentBoard.columns.find(c => c.id === payload.new.id);
+        if (!exists) {
+          this.currentBoard.columns.push({
+            ...payload.new,
+            cards: []
+          });
+          this.currentBoard.columns.sort((a, b) => a.position - b.position);
+        }
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        // Remove deleted column
+        this.currentBoard.columns = this.currentBoard.columns.filter(c => c.id !== payload.old.id);
+      }
     }
   }
 
   private handleCardChange(payload: any) {
     console.log('Card change:', payload);
-    if (this.currentBoard) {
-      // For card changes, we can be more specific
-      if (payload.eventType === 'INSERT') {
-        // New card added
-        this.loadBoard(this.currentBoard.id);
-      } else if (payload.eventType === 'UPDATE') {
-        // Card updated - reload to get fresh data
-        this.loadBoard(this.currentBoard.id);
-      } else if (payload.eventType === 'DELETE') {
-        // Card deleted
-        this.loadBoard(this.currentBoard.id);
+    if (this.currentBoard?.columns) {
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        // Update card properties optimistically
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const cardIndex = column.cards.findIndex(c => c.id === payload.new.id);
+            if (cardIndex !== -1) {
+              column.cards[cardIndex] = {
+                ...column.cards[cardIndex],
+                ...payload.new
+              };
+              break;
+            }
+          }
+        }
+      } else if (payload.eventType === 'INSERT' && payload.new) {
+        // Add new card if not already present (from optimistic update)
+        const targetColumn = this.currentBoard.columns.find(c => c.id === payload.new.column_id);
+        if (targetColumn?.cards) {
+          const exists = targetColumn.cards.find(c => c.id === payload.new.id);
+          if (!exists) {
+            targetColumn.cards.push({
+              ...payload.new,
+              column: {
+                id: targetColumn.id,
+                title: targetColumn.title
+              }
+            });
+            targetColumn.cards.sort((a, b) => a.position - b.position);
+          }
+        }
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        // Remove deleted card
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            column.cards = column.cards.filter(c => c.id !== payload.old.id);
+          }
+        }
       }
+    }
+  }
+
+  private handleCardLabelAssignmentChange(payload: any) {
+    console.log('Card label assignment change:', payload);
+    if (this.currentBoard?.columns) {
+      if (payload.eventType === 'INSERT' && payload.new) {
+        // Add new label assignment
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const card = column.cards.find(c => c.id === payload.new.card_id);
+            if (card) {
+              if (!card.card_label_assignments) card.card_label_assignments = [];
+              
+              // Check if assignment already exists (from optimistic update)
+              const existingAssignment = card.card_label_assignments.find(
+                a => a.label_id === payload.new.label_id
+              );
+              
+              if (!existingAssignment) {
+                // Try to find label details from existing cards first
+                let label = this.currentBoard.columns?.flatMap(c => 
+                  c.cards?.flatMap(card => 
+                    card.card_label_assignments?.map(a => a.card_labels)
+                  ) || []
+                ).find(l => l?.id === payload.new.label_id);
+                
+                // If not found, we'll fetch it asynchronously
+                if (!label) {
+                  this.fetchLabelDetails(payload.new.label_id).then(labelData => {
+                    if (labelData && card.card_label_assignments) {
+                      const assignment = card.card_label_assignments.find(
+                        a => a.label_id === payload.new.label_id
+                      );
+                      if (assignment) {
+                        assignment.card_labels = labelData;
+                      }
+                    }
+                  });
+                }
+                
+                card.card_label_assignments.push({
+                  id: payload.new.id,
+                  card_id: payload.new.card_id,
+                  label_id: payload.new.label_id,
+                  card_labels: label || null
+                });
+              } else {
+                // Update existing assignment with real ID
+                existingAssignment.id = payload.new.id;
+              }
+              break;
+            }
+          }
+        }
+      } else if (payload.eventType === 'DELETE' && payload.old) {
+        // Remove deleted label assignment
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const card = column.cards.find(c => c.id === payload.old.card_id);
+            if (card && card.card_label_assignments) {
+              card.card_label_assignments = card.card_label_assignments.filter(
+                a => a.label_id !== payload.old.label_id
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private async fetchLabelDetails(labelId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('card_labels')
+        .select('*')
+        .eq('id', labelId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching label details:', error);
+      return null;
     }
   }
 
@@ -714,6 +1038,94 @@ class KanbanStore {
     console.log('New activity:', payload);
     // Activity changes can trigger UI notifications or activity feed updates
     // This will be handled by the ActivityFeed component
+  }
+
+  // Label management for cards
+  async updateCardLabels(cardId: string, labelId: string, isAssigning: boolean) {
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - update card labels immediately
+      async () => {
+        if (!this.currentBoard?.columns) return;
+        
+        for (const column of this.currentBoard.columns) {
+          if (column.cards) {
+            const card = column.cards.find(c => c.id === cardId);
+            if (card) {
+              if (!card.card_label_assignments) card.card_label_assignments = [];
+              
+              if (isAssigning) {
+                // Add label assignment
+                const existingAssignment = card.card_label_assignments.find(
+                  a => a.label_id === labelId
+                );
+                if (!existingAssignment) {
+                  // Try to find label details from existing cards first
+                  let label = this.currentBoard.columns?.flatMap(c => 
+                    c.cards?.flatMap(card => 
+                      card.card_label_assignments?.map(a => a.card_labels)
+                    ) || []
+                  ).find(l => l?.id === labelId);
+                  
+                  // If not found, fetch from database
+                  if (!label) {
+                    const { data: labelData } = await supabase
+                      .from('card_labels')
+                      .select('*')
+                      .eq('id', labelId)
+                      .single();
+                    label = labelData;
+                  }
+                  
+                  card.card_label_assignments.push({
+                    id: `temp-${Date.now()}`,
+                    card_id: cardId,
+                    label_id: labelId,
+                    card_labels: label || null
+                  });
+                }
+              } else {
+                // Remove label assignment
+                card.card_label_assignments = card.card_label_assignments.filter(
+                  a => a.label_id !== labelId
+                );
+              }
+              break;
+            }
+          }
+        }
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        if (isAssigning) {
+          const { error } = await supabase
+            .from('card_label_assignments')
+            .insert({
+              card_id: cardId,
+              label_id: labelId
+            });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from('card_label_assignments')
+            .delete()
+            .eq('card_id', cardId)
+            .eq('label_id', labelId);
+          if (error) throw error;
+        }
+        
+        return true;
+      }
+    );
   }
 
   // Cleanup

@@ -32,11 +32,12 @@
 	
 	interface Props {
 		boardId: string;
+		cardId?: string; // Optional: filter activities for specific card
 		maxItems?: number;
 		showFilters?: boolean;
 	}
 	
-	let { boardId, maxItems = 50, showFilters = true }: Props = $props();
+	let { boardId, cardId, maxItems = 50, showFilters = true }: Props = $props();
 	
 	let activities = $state<Activity[]>([]);
 	let isLoading = $state(true);
@@ -77,8 +78,30 @@
 			
 			if (error) throw error;
 			
+			// Filter activities for specific card if cardId is provided
+			let filteredActivities = activitiesData || [];
+			if (cardId) {
+				// For card-specific activities, we need to get the card title first
+				const { data: cardData } = await supabase
+					.from('cards')
+					.select('title')
+					.eq('id', cardId)
+					.single();
+				
+				const cardTitle = cardData?.title;
+				
+				// Filter activities that are related to this specific card
+				filteredActivities = filteredActivities.filter(activity => {
+					// Check if the activity metadata contains this card's title
+					if (activity.metadata && cardTitle) {
+						return activity.metadata.card_title === cardTitle;
+					}
+					return false;
+				});
+			}
+			
 			// Get unique user IDs (filter out null values)
-			const userIds = [...new Set(activitiesData?.map(a => a.user_id).filter((id): id is string => id !== null) || [])];
+			const userIds = [...new Set(filteredActivities?.map(a => a.user_id).filter((id): id is string => id !== null) || [])];
 			
 			// Get user details
 			const { data: usersData } = await supabase
@@ -87,7 +110,7 @@
 				.in('id', userIds);
 			
 			// Combine activities with user data
-			activities = (activitiesData || []).map(activity => ({
+			activities = (filteredActivities || []).map(activity => ({
 				...activity,
 				user: usersData?.find(u => u.id === activity.user_id) || null
 			})) as Activity[];
