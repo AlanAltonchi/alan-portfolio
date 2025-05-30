@@ -1,5 +1,6 @@
 <script lang="ts">
   import { kanbanStore } from '$lib/stores/kanban.svelte';
+  import UserPresence from './UserPresence.svelte';
   import type { Board } from '$lib/types/kanban';
   
   interface Props {
@@ -67,7 +68,9 @@
       {/if}
     </div>
     
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-4">
+      <!-- User Presence -->
+      <UserPresence boardId={board.id} />
       
       <!-- View mode buttons -->
       <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded p-1">

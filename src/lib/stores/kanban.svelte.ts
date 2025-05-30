@@ -18,6 +18,19 @@ import type {
 } from '$lib/types/kanban';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
+// Custom deep copy function for board state (only copies essential properties)
+function deepCopyBoardState(board: Board): Board {
+  return {
+    ...board,
+    columns: board.columns?.map(column => ({
+      ...column,
+      cards: column.cards?.map(card => ({
+        ...card
+      })) || []
+    })) || []
+  };
+}
+
 class KanbanStore {
   private boards = $state<Board[]>([]);
   private currentBoard = $state<Board | null>(null);
@@ -40,6 +53,10 @@ class KanbanStore {
   private activeUsers = $state<Map<string, User>>(new Map());
   private boardChannel: RealtimeChannel | null = null;
   private subscriptionManager = getSubscriptionManager(supabase);
+  
+  // Optimistic updates management
+  private optimisticUpdates = $state<Map<string, any>>(new Map());
+  private rollbackQueue = $state<Array<() => void>>([]);
 
   get state(): KanbanState {
     return {
@@ -112,12 +129,19 @@ class KanbanStore {
         columns: columns || []
       };
 
-      // Sort columns and cards by position
+      // Sort columns and cards by position, and add column info to each card
       if (typedBoard.columns) {
         typedBoard.columns.sort((a: any, b: any) => a.position - b.position);
         typedBoard.columns.forEach((column: any) => {
           if (column.cards) {
             column.cards.sort((a: any, b: any) => a.position - b.position);
+            // Add column information to each card
+            column.cards.forEach((card: any) => {
+              card.column = {
+                id: column.id,
+                title: column.title
+              };
+            });
           }
         });
       }
@@ -183,6 +207,11 @@ class KanbanStore {
         .eq('id', boardId);
 
       if (error) throw error;
+
+      // Track activity
+      await this.trackActivity(boardId, 'board_updated', {
+        changes: input
+      });
 
       if (this.currentBoard?.id === boardId) {
         await this.loadBoard(boardId);
@@ -328,6 +357,12 @@ class KanbanStore {
 
       if (error) throw error;
 
+      // Track activity
+      await this.trackActivity(input.board_id, 'card_created', {
+        card_title: data.title,
+        column_id: input.column_id
+      });
+
       if (this.currentBoard?.id === input.board_id) {
         await this.loadBoard(input.board_id);
       }
@@ -378,27 +413,101 @@ class KanbanStore {
   }
 
   async moveCard({ cardId, sourceColumnId, targetColumnId, newPosition }: MoveCardInput) {
-    try {
-      // If moving within the same column, just update position
-      if (sourceColumnId === targetColumnId) {
-        await this.updateCard(cardId, { position: newPosition });
-        return;
+    if (!this.currentBoard) return;
+    
+    const originalBoard = deepCopyBoardState(this.currentBoard);
+    
+    return this.withOptimisticUpdate(
+      // Optimistic update - move card immediately in UI
+      () => {
+        if (!this.currentBoard?.columns) return;
+        
+        // Find source and target columns
+        const sourceColumn = this.currentBoard.columns.find(c => c.id === sourceColumnId);
+        const targetColumn = this.currentBoard.columns.find(c => c.id === targetColumnId);
+        
+        if (!sourceColumn || !targetColumn) return;
+        
+        // Find and remove card from source column
+        const cardIndex = sourceColumn.cards?.findIndex(c => c.id === cardId) ?? -1;
+        if (cardIndex === -1) return;
+        
+        const [movedCard] = sourceColumn.cards!.splice(cardIndex, 1);
+        
+        // Update card's column_id if moving to different column
+        if (sourceColumnId !== targetColumnId) {
+          movedCard.column_id = targetColumnId;
+        }
+        
+        // Insert card at new position in target column
+        if (!targetColumn.cards) targetColumn.cards = [];
+        targetColumn.cards.splice(newPosition, 0, movedCard);
+        
+        // Update positions
+        sourceColumn.cards?.forEach((card, index) => {
+          card.position = index;
+        });
+        targetColumn.cards?.forEach((card, index) => {
+          card.position = index;
+        });
+      },
+      
+      // Rollback function
+      () => {
+        this.currentBoard = originalBoard;
+      },
+      
+      // Actual database operation
+      async () => {
+        // Get card details and column names for activity tracking
+        const { data: card } = await supabase
+          .from('cards')
+          .select('title, board_id')
+          .eq('id', cardId)
+          .single();
+
+        const { data: sourceColumn } = await supabase
+          .from('columns')
+          .select('title')
+          .eq('id', sourceColumnId)
+          .single();
+
+        const { data: targetColumn } = await supabase
+          .from('columns')
+          .select('title')
+          .eq('id', targetColumnId)
+          .single();
+
+        // If moving within the same column, just update position
+        if (sourceColumnId === targetColumnId) {
+          await this.updateCard(cardId, { position: newPosition });
+        } else {
+          // Moving to a different column
+          await this.updateCard(cardId, {
+            column_id: targetColumnId,
+            position: newPosition
+          });
+        }
+
+        // Track activity with column names
+        if (card) {
+          await this.trackActivity(card.board_id, 'card_moved', {
+            card_title: card.title,
+            source_column_id: sourceColumnId,
+            target_column_id: targetColumnId,
+            source_column_name: sourceColumn?.title || 'Unknown Column',
+            target_column_name: targetColumn?.title || 'Unknown Column'
+          });
+        }
+
+        // Reorder cards in both columns
+        await this.reorderCards(sourceColumnId);
+        await this.reorderCards(targetColumnId);
+        
+        // Reload board to ensure consistency
+        await this.loadBoard(this.currentBoard!.id);
       }
-
-      // Moving to a different column
-      await this.updateCard(cardId, {
-        column_id: targetColumnId,
-        position: newPosition
-      });
-
-      // Reorder cards in both columns
-      await this.reorderCards(sourceColumnId);
-      await this.reorderCards(targetColumnId);
-    } catch (err) {
-      this.error = err instanceof Error ? err.message : 'Failed to move card';
-      console.error('Error moving card:', err);
-      throw err;
-    }
+    );
   }
 
   private async reorderCards(columnId: string) {
@@ -453,6 +562,40 @@ class KanbanStore {
     this.viewMode = mode;
   }
 
+  // Optimistic updates
+  private async withOptimisticUpdate<T>(
+    optimisticUpdate: () => void,
+    rollback: () => void,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    const updateId = Math.random().toString(36);
+    
+    try {
+      // Apply optimistic update immediately
+      optimisticUpdate();
+      this.optimisticUpdates.set(updateId, { rollback });
+      
+      // Perform actual operation
+      const result = await operation();
+      
+      // Success - remove from optimistic updates
+      this.optimisticUpdates.delete(updateId);
+      return result;
+    } catch (error) {
+      // Failure - rollback the optimistic update
+      rollback();
+      this.optimisticUpdates.delete(updateId);
+      throw error;
+    }
+  }
+  
+  private rollbackAllOptimisticUpdates() {
+    for (const [id, { rollback }] of this.optimisticUpdates) {
+      rollback();
+    }
+    this.optimisticUpdates.clear();
+  }
+
   // Activity tracking
   private async trackActivity(boardId: string, action: string, details: any) {
     try {
@@ -465,7 +608,8 @@ class KanbanStore {
           board_id: boardId,
           user_id: user.user.id,
           action,
-          details,
+          entity_type: 'board',
+          metadata: details,
           created_at: new Date().toISOString()
         });
     } catch (err) {
@@ -535,7 +679,9 @@ class KanbanStore {
     console.log('Board change:', payload);
     if (this.currentBoard?.id === payload.new?.id || this.currentBoard?.id === payload.old?.id) {
       // Reload board data for board changes
-      this.loadBoard(this.currentBoard.id);
+      if (this.currentBoard) {
+        this.loadBoard(this.currentBoard.id);
+      }
     }
   }
 

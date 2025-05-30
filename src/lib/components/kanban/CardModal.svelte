@@ -12,7 +12,8 @@
 	import CardChecklists from './CardChecklists.svelte';
 	import CardAttachments from './CardAttachments.svelte';
 	import CardComments from './CardComments.svelte';
-	import { Calendar, X, Paperclip, CheckSquare, Tag, Users, MessageSquare } from 'lucide-svelte';
+	import ActivityFeed from './ActivityFeed.svelte';
+	import { Calendar, X, Paperclip, CheckSquare, Tag, Users, MessageSquare, Activity } from 'lucide-svelte';
 
 	interface Props {
 		card: Card;
@@ -30,7 +31,7 @@
 	let isSaving = $state(false);
 	
 	// Tab state
-	let activeTab = $state<'details' | 'checklists' | 'attachments' | 'comments'>('details');
+	let activeTab = $state<'details' | 'checklists' | 'attachments' | 'comments' | 'activity'>('details');
 	
 	async function saveCard() {
 		if (!authStore.user) return;
@@ -164,10 +165,22 @@
 					</span>
 				{/if}
 			</button>
+			
+			<button
+				onclick={() => activeTab = 'activity'}
+				class="px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 {
+					activeTab === 'activity' 
+						? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400' 
+						: 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+				}"
+			>
+				<Activity class="w-4 h-4" />
+				Activity
+			</button>
 		</div>
 		
 		<!-- Content -->
-		<div class="flex-1 overflow-y-auto p-6">
+		<div class="flex-1 p-6">
 			{#if activeTab === 'details'}
 				<div class="space-y-6">
 					<!-- Labels and Assignees -->
@@ -248,6 +261,8 @@
 				<CardAttachments cardId={card.id} boardId={card.board_id} />
 			{:else if activeTab === 'comments'}
 				<CardComments cardId={card.id} />
+			{:else if activeTab === 'activity'}
+				<ActivityFeed boardId={card.board_id} maxItems={20} />
 			{/if}
 		</div>
 		

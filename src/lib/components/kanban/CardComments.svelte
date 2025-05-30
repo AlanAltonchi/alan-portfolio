@@ -31,6 +31,10 @@
 	let isSubmitting = $state(false);
 	let editingCommentId = $state<string | null>(null);
 	let editingContent = $state('');
+	let showMentions = $state(false);
+	let mentionQuery = $state('');
+	let boardMembers = $state<Array<{ user_id: string; email: string; full_name: string | null }>>([]);
+	let textareaRef: HTMLTextAreaElement;
 	
 	async function loadComments() {
 		if (!authStore.user) return;
@@ -67,6 +71,41 @@
 		}
 		
 		isLoading = false;
+	}
+	
+	async function loadBoardMembers() {
+		if (!authStore.user) return;
+		
+		// Get card details to find board ID
+		const { data: cardData } = await supabase
+			.from('cards')
+			.select('board_id')
+			.eq('id', cardId)
+			.single();
+			
+		if (!cardData) return;
+		
+		// Load board members
+		const { data: memberData } = await supabase
+			.from('board_members')
+			.select('user_id')
+			.eq('board_id', cardData.board_id);
+			
+		if (memberData) {
+			const userIds = memberData.map(m => m.user_id);
+			const { data: userData } = await supabase
+				.from('users')
+				.select('id, email')
+				.in('id', userIds);
+				
+			if (userData) {
+				boardMembers = userData.map(u => ({
+					user_id: u.id,
+					email: u.email,
+					full_name: null
+				}));
+			}
+		}
 	}
 	
 	async function submitComment() {
@@ -161,8 +200,72 @@
 		return date.toLocaleDateString();
 	}
 	
+	function handleTextareaInput(e: Event) {
+		const target = e.target as HTMLTextAreaElement;
+		const text = target.value;
+		const cursorPosition = target.selectionStart;
+		
+		// Check for @ mentions
+		const textBeforeCursor = text.substring(0, cursorPosition);
+		const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+		
+		if (mentionMatch) {
+			mentionQuery = mentionMatch[1];
+			showMentions = true;
+		} else {
+			showMentions = false;
+			mentionQuery = '';
+		}
+	}
+	
+	function insertMention(member: { user_id: string; email: string; full_name: string | null }) {
+		if (!textareaRef) return;
+		
+		const text = newComment;
+		const cursorPosition = textareaRef.selectionStart;
+		const textBeforeCursor = text.substring(0, cursorPosition);
+		const textAfterCursor = text.substring(cursorPosition);
+		
+		// Find the @ symbol position
+		const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+		if (!mentionMatch) return;
+		
+		const mentionStart = textBeforeCursor.lastIndexOf('@');
+		const displayName = member.full_name || member.email.split('@')[0];
+		
+		// Replace the partial mention with the complete mention
+		newComment = 
+			text.substring(0, mentionStart) + 
+			`@${displayName} ` + 
+			textAfterCursor;
+		
+		showMentions = false;
+		mentionQuery = '';
+		
+		// Focus back to textarea
+		setTimeout(() => {
+			textareaRef.focus();
+			const newPosition = mentionStart + displayName.length + 2;
+			textareaRef.setSelectionRange(newPosition, newPosition);
+		}, 0);
+	}
+	
+	function renderCommentWithMentions(content: string): string {
+		// Simple mention detection and highlighting
+		return content.replace(/@(\w+)/g, '<span class="text-blue-600 dark:text-blue-400 font-medium">@$1</span>');
+	}
+	
+	let filteredMembers = $derived(
+		boardMembers.filter(member => {
+			if (!mentionQuery) return true;
+			const displayName = member.full_name || member.email.split('@')[0];
+			return displayName.toLowerCase().includes(mentionQuery.toLowerCase());
+		}).slice(0, 5)
+	);
+	
 	$effect(() => {
 		loadComments();
+		loadBoardMembers();
 	});
 </script>
 
@@ -182,23 +285,58 @@
 				/>
 			{/if}
 			
-			<div class="flex-1">
+			<div class="flex-1 relative">
 				<textarea
+					bind:this={textareaRef}
 					bind:value={newComment}
-					placeholder="Write a comment..."
+					placeholder="Write a comment... Use @ to mention someone"
 					rows="3"
 					class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
 						bg-white dark:bg-gray-900 text-gray-900 dark:text-white 
 						placeholder-gray-400 dark:placeholder-gray-500 resize-none
 						focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+					oninput={handleTextareaInput}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' && e.ctrlKey) {
 							submitComment();
+						} else if (e.key === 'Escape') {
+							showMentions = false;
 						}
 					}}
 				/>
 				
-				<div class="mt-2 flex justify-end">
+				<!-- Mentions Dropdown -->
+				{#if showMentions && filteredMembers.length > 0}
+					<div class="absolute bottom-full left-0 mb-1 w-64 bg-white dark:bg-gray-800 
+						rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50 w-max max-h-40 overflow-y-auto overflow-x-hidden">
+						{#each filteredMembers as member}
+							<button
+								onclick={() => insertMention(member)}
+								class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 
+									dark:hover:bg-gray-700 first:rounded-t-md last:rounded-b-md"
+							>
+								<Avatar
+									src={null}
+									alt={member.full_name || member.email}
+									size="sm"
+								/>
+								<div>
+									<div class="text-sm font-medium text-gray-900 dark:text-white">
+										{member.full_name || member.email.split('@')[0]}
+									</div>
+									<div class="text-xs text-gray-500 dark:text-gray-400">
+										{member.email}
+									</div>
+								</div>
+							</button>
+						{/each}
+					</div>
+				{/if}
+				
+				<div class="mt-2 flex justify-between items-center">
+					<p class="text-xs text-gray-500 dark:text-gray-400">
+						Tip: Use Ctrl+Enter to send quickly
+					</p>
 					<Button
 						variant="primary"
 						size="sm"
@@ -285,9 +423,9 @@
 									</div>
 								</div>
 							{:else}
-								<p class="mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-									{comment.content}
-								</p>
+								<div class="mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+									{@html renderCommentWithMentions(comment.content)}
+								</div>
 							{/if}
 						</div>
 					</div>

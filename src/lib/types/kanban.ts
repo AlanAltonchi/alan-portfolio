@@ -29,6 +29,11 @@ export interface Card extends DbCard {
   checklists?: CardChecklist[];
   labels?: CardLabel[];
   assignees?: User[];
+  card_label_assignments?: any[];
+  column?: {
+    id: string;
+    title: string;
+  };
 }
 
 export interface BoardMember extends DbBoardMember {
