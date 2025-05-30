@@ -1,7 +1,7 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { goto } from '$app/navigation';
 import { authStore } from '$lib/stores/auth.svelte';
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import type { Tables } from '$lib/types';
 
 /**
  * Validates if a user still exists in the database
@@ -38,7 +38,7 @@ export async function handleInvalidSession(supabase: SupabaseClient): Promise<vo
 /**
  * Loads user profile data
  */
-export async function loadUserProfile(supabase: SupabaseClient, userId: string): Promise<any> {
+export async function loadUserProfile(supabase: SupabaseClient, userId: string): Promise<Tables<'profiles'> | null> {
 	try {
 		const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 

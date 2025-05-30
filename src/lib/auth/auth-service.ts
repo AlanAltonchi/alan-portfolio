@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { goto, invalidate } from '$app/navigation';
 import { authStore } from '$lib/stores/auth.svelte';
 import type { AuthResult, AuthFormData } from './types.js';
@@ -32,8 +32,8 @@ export class AuthService {
 
 			return {
 				success: true,
-				user: data.user,
-				session: data.session
+				user: data.user ?? undefined,
+				session: data.session ?? undefined
 			};
 		} catch (err) {
 			console.error('Signup error:', err);
@@ -66,11 +66,11 @@ export class AuthService {
 					error: error.message
 				};
 			}
-
+			
 			return {
 				success: true,
-				user: data.user,
-				session: data.session
+				user: data.user ?? undefined,
+				session: data.session ?? undefined
 			};
 		} catch (err) {
 			console.error('Login error:', err);
@@ -81,7 +81,7 @@ export class AuthService {
 		}
 	}
 
-	async handleAuthSuccess(user: any, session: any, redirectPath = '/'): Promise<void> {
+	async handleAuthSuccess(user: User, session: Session, redirectPath = '/'): Promise<void> {
 		authStore.setAuth(session, user);
 		await invalidate('supabase:auth');
 		setTimeout(() => goto(redirectPath), 1000);
@@ -103,8 +103,8 @@ export class AuthService {
 
 			return {
 				success: true,
-				user: data.user,
-				session: data.session
+				user: data.user ?? undefined,
+				session: data.session ?? undefined
 			};
 		} catch (err) {
 			console.error('Demo signin error:', err);

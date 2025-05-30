@@ -58,7 +58,7 @@
 <div class="w-full">
 	<!-- Tab Navigation -->
 	<div class="flex {variantClasses[variant].container}">
-		{#each tabs as tab}
+		{#each tabs as tab (tab.id)}
 			<button
 				class="{baseTabClasses} {sizeClasses[size]} {variantClasses[variant].tab} {activeTab ===
 				tab.id

@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession } }) => {
 	const { session, user } = await safeGetSession();
 
-	if (!session) {
+	if (!session || !user?.id) {
 		throw redirect(303, '/auth/login');
 	}
 
@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 	const { data: users, error: usersError } = await supabase
 		.from('users')
 		.select('id, email, profiles(name, avatar_url)')
-		.neq('id', user?.id);
+		.neq('id', user.id);
 
 	if (usersError) {
 		console.error('Error fetching users:', usersError);
@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 			user_b_profile:users!conversations_user_b_fkey(id, email, profiles(name, avatar_url))
 		`
 		)
-		.or(`user_a.eq.${user?.id},user_b.eq.${user?.id}`)
+		.or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
 		.order('updated_at', { ascending: false });
 
 	if (conversationsError) {
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 	return {
 		users: users || [],
 		conversations: conversations || [],
-		currentUserId: user?.id,
+		currentUserId: user.id,
 		devData: {
 			relevantTables: ['users', 'profiles', 'conversations', 'messages']
 		}

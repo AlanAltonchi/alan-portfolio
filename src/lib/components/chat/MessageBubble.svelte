@@ -74,13 +74,13 @@
 					>
 						{@html renderedContent}
 					</div>
-				{:catch error}
+				{:catch}
 					<div class="text-sm text-red-400">Error rendering content</div>
 				{/await}
 			{/if}
 
 			{#if message.image_url}
-				<div class="{message.content ? 'mt-2' : ''}">
+				<div class={message.content ? 'mt-2' : ''}>
 					<img
 						src={message.image_url}
 						alt="Shared img"

@@ -123,7 +123,7 @@
 <div class="relative">
 	<!-- Assigned Labels Display -->
 	<div class="flex flex-wrap items-center gap-2">
-		{#each labels.filter((l) => assignedLabelIds().has(l.id)) as label}
+		{#each labels.filter((l) => assignedLabelIds().has(l.id)) as label (label.id)}
 			<span
 				class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-white"
 				style="background-color: {label.color}"
@@ -134,9 +134,12 @@
 
 		<button
 			onclick={() => (showDropdown = !showDropdown)}
+			onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (showDropdown = !showDropdown)}
 			class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs
 				font-medium text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800
 				dark:text-gray-400 dark:hover:bg-gray-700"
+			aria-label="{showDropdown ? 'Close' : 'Open'} label menu"
+			aria-expanded={showDropdown}
 		>
 			<Plus class="h-3 w-3" />
 			Add Label
@@ -163,23 +166,28 @@
 						/>
 
 						<div class="flex flex-wrap gap-1">
-							{#each predefinedColors as color}
+							{#each predefinedColors as color (color)}
 								<button
 									onclick={() => (newLabelColor = color)}
+									onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (newLabelColor = color)}
 									class="h-6 w-6 rounded border-2 {newLabelColor === color
 										? 'border-gray-900 dark:border-white'
 										: 'border-transparent'}"
 									style="background-color: {color}"
-								/>
+									aria-label="Select color {color}"
+									type="button"
+								></button>
 							{/each}
 						</div>
 
 						<div class="flex gap-2">
 							<button
 								onclick={createLabel}
+								onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && createLabel()}
 								disabled={!newLabelName.trim()}
 								class="flex-1 rounded bg-blue-600 px-2 py-1 text-xs font-medium
 									text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+								type="button"
 							>
 								Create
 							</button>
@@ -189,8 +197,16 @@
 									newLabelName = '';
 									newLabelColor = '#3b82f6';
 								}}
+								onkeydown={(e) => {
+									if (e.key === 'Enter' || e.key === ' ') {
+										isCreating = false;
+										newLabelName = '';
+										newLabelColor = '#3b82f6';
+									}
+								}}
 								class="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-800
 									dark:text-gray-400 dark:hover:text-gray-200"
+								type="button"
 							>
 								Cancel
 							</button>
@@ -208,34 +224,42 @@
 						</div>
 					{:else}
 						<div class="max-h-64 overflow-y-auto">
-							{#each labels as label}
-								<div
-									role="presentation"
-									class=" group flex items-center gap-2 rounded p-1 select-none
-									hover:bg-gray-100 dark:hover:bg-gray-700"
-									onclick={() => toggleLabel(label.id)}
-								>
-									<div class="flex flex-1 items-center gap-2 text-left">
+							{#each labels as label (label.id)}
+								<div class="group flex w-full items-center gap-2 rounded p-1 select-none hover:bg-gray-100 dark:hover:bg-gray-700">
+									<button
+										class="flex flex-1 items-center gap-2 text-left"
+										onclick={() => toggleLabel(label.id)}
+										onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleLabel(label.id)}
+										aria-label="{assignedLabelIds().has(label.id) ? 'Remove' : 'Add'} label {label.name}"
+										type="button"
+									>
 										<span
 											class="inline-block h-4 w-4 rounded"
 											style="background-color: {label.color}"
-										>
-										</span>
+										></span>
 										<span class="text-sm text-gray-700 dark:text-gray-300">
 											{label.name}
 										</span>
 										{#if assignedLabelIds().has(label.id)}
 											<Check class="ml-auto h-3 w-3 text-green-600 dark:text-green-400" />
 										{/if}
-									</div>
+									</button>
 
 									<button
 										onclick={(e) => {
 											e.stopPropagation();
 											deleteLabel(label.id);
 										}}
+										onkeydown={(e) => {
+											if (e.key === 'Enter' || e.key === ' ') {
+												e.stopPropagation();
+												deleteLabel(label.id);
+											}
+										}}
 										class="p-1 text-red-600 opacity-0 group-hover:opacity-100
 											hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+										aria-label="Delete label {label.name}"
+										type="button"
 									>
 										<X class="h-3 w-3" />
 									</button>
@@ -247,9 +271,11 @@
 					<div class="mt-2 border-t border-gray-200 pt-2 dark:border-gray-700">
 						<button
 							onclick={() => (isCreating = true)}
+							onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (isCreating = true)}
 							class="flex w-full items-center gap-2 rounded px-2 py-1 text-sm
 								text-gray-600 hover:bg-gray-100 hover:text-gray-800
 								dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+							type="button"
 						>
 							<Plus class="h-4 w-4" />
 							Create new label
@@ -263,5 +289,12 @@
 
 <!-- Click outside to close -->
 {#if showDropdown}
-	<div class="fixed inset-0 z-40" onclick={() => (showDropdown = false)} />
+	<div 
+		class="fixed inset-0 z-40" 
+		onclick={() => (showDropdown = false)}
+		onkeydown={(e) => e.key === 'Escape' && (showDropdown = false)}
+		role="button"
+		tabindex="-1"
+		aria-label="Close label menu"
+	></div>
 {/if}

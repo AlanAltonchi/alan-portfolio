@@ -117,7 +117,7 @@ export function createInterestsManager(initialInterests: string[] = []) {
  * Handles avatar file operations
  */
 export function createAvatarManager() {
-	let avatarState = $state<AvatarState>({
+	const avatarState = $state<AvatarState>({
 		file: null,
 		preview: null,
 		currentUrl: null
@@ -134,7 +134,7 @@ export function createAvatarManager() {
 			avatarState.file = file;
 			avatarState.preview = preview;
 			return { success: true };
-		} catch (error) {
+		} catch {
 			return { success: false, error: 'Failed to create preview' };
 		}
 	}

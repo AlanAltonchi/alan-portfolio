@@ -22,11 +22,7 @@ export class SubscriptionManager {
 	 * Remove a specific subscription
 	 */
 	removeSubscription(subscription: RealtimeChannel): void {
-		const index = this.subscriptions.indexOf(subscription);
-		if (index > -1) {
-			this.subscriptions.splice(index, 1);
-			this.supabase.removeChannel(subscription);
-		}
+		subscription.unsubscribe();
 	}
 
 	/**
@@ -34,7 +30,7 @@ export class SubscriptionManager {
 	 */
 	cleanup(): void {
 		this.subscriptions.forEach((subscription) => {
-			this.supabase.removeChannel(subscription);
+			subscription.unsubscribe();
 		});
 		this.subscriptions = [];
 	}

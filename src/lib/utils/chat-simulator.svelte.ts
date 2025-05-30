@@ -1,4 +1,4 @@
-import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
+import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { Message, ConversationWithUsers } from '$lib/types';
 
 export interface SimulatorPosition {
@@ -21,7 +21,7 @@ export interface TypingState {
  * Handles drag functionality for the chat simulator
  */
 export function createDragHandler() {
-	let dragState = $state<DragState>({
+	const dragState = $state<DragState>({
 		isDragging: false,
 		offset: { x: 0, y: 0 }
 	});
@@ -80,7 +80,7 @@ export function createTypingManager(
 	conversationId: string,
 	currentUserId: string
 ) {
-	let typingState = $state<TypingState>({
+	const typingState = $state<TypingState>({
 		isTyping: false,
 		mainUserTyping: false,
 		timeout: null
@@ -159,7 +159,7 @@ export function createTypingManager(
 export function createRealtimeManager(
 	supabase: SupabaseClient,
 	conversationId: string,
-	onMessageUpdate: (payload: any) => void,
+	onMessageUpdate: (payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>) => void,
 	onConversationDeleted: () => void,
 	onTypingUpdate: (isTyping: boolean) => void
 ) {
@@ -169,7 +169,7 @@ export function createRealtimeManager(
 		const channel = supabase
 			.channel(`simulator_messages:${conversationId}`)
 			.on(
-				'postgres_changes' as any,
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
@@ -188,7 +188,7 @@ export function createRealtimeManager(
 		const channel = supabase
 			.channel(`conversation:${conversationId}`)
 			.on(
-				'postgres_changes' as any,
+				'postgres_changes',
 				{
 					event: 'DELETE',
 					schema: 'public',
@@ -207,14 +207,14 @@ export function createRealtimeManager(
 		const channel = supabase
 			.channel(`simulator_typing:${conversationId}`)
 			.on(
-				'postgres_changes' as any,
+				'postgres_changes',
 				{
 					event: '*',
 					schema: 'public',
 					table: 'typing_status',
 					filter: `conversation_id=eq.${conversationId}`
 				},
-				(payload: { eventType: string; new: any; old: any }) => {
+				(payload) => {
 					if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
 						const typingData = payload.new;
 						onTypingUpdate(!typingData.is_simulator && typingData.is_typing);

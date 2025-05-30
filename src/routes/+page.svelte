@@ -15,7 +15,7 @@
 		Database
 	} from 'lucide-svelte';
 
-	let { data } = $props();
+	// let { data } = $props(); // Unused
 
 	let showModal = $state(false);
 	let showDrawer = $state(false);
@@ -575,7 +575,7 @@
 </div>
 
 <!-- Modal -->
-<Modal open={showModal} title="Example Modal" onclose={() => (showModal = false)}>
+<Modal isOpen={showModal} title="Example Modal" onClose={() => (showModal = false)}>
 	<div class="space-y-4">
 		<p>This is an example modal with a title and close button.</p>
 		<p>You can click the backdrop or press Escape to close it.</p>

@@ -4,7 +4,7 @@
 	import { Card, Button } from '$lib/components';
 	import { authStore } from '$lib/stores/auth.svelte';
 
-	let { data } = $props();
+	// let { data } = $props(); // Unused
 
 	// Redirect to login if not authenticated
 	onMount(() => {
@@ -43,7 +43,7 @@
 			<Card variant="outlined">
 				<h3 class="mb-2 text-lg font-semibold">Tasks</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Manage your tasks and projects.</p>
-				<Button variant="outline" size="sm">View Tasks</Button>
+				<Button variant="outline" size="sm" onclick={() => goto('/kanban')}>View Tasks</Button>
 			</Card>
 
 			<Card variant="outlined">
@@ -57,7 +57,9 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					View your activity and usage statistics.
 				</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/analytics')}>View Analytics</Button>
+				<Button variant="outline" size="sm" onclick={() => goto('/analytics')}
+					>View Analytics</Button
+				>
 			</Card>
 
 			<Card variant="outlined">

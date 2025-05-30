@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Card } from '$lib/components';
+	import type { Snippet } from 'svelte';
 
 	let {
 		title,
@@ -9,7 +10,7 @@
 	} = $props<{
 		title: string;
 		subtitle?: string;
-		children: any;
+		children: Snippet;
 		showCard?: boolean;
 	}>();
 </script>

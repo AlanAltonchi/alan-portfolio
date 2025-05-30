@@ -23,7 +23,7 @@ function createAuthState(): AuthState {
 
 export const authState = $state(createAuthState());
 
-export let userStore: UserStore = $state({
+export const userStore: UserStore = $state({
 	user: null
 });
 

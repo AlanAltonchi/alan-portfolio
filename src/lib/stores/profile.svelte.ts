@@ -3,6 +3,8 @@ import { userStore } from './auth.svelte';
 import imageCompression from 'browser-image-compression';
 import type { Profile } from '$lib/types';
 
+export type { Profile };
+
 interface ProfileState {
 	profiles: Profile[];
 	loading: boolean;
@@ -146,7 +148,7 @@ export const profileStore = {
 			const compressedFile = await compressImage(file);
 			const filePath = `${userId}/avatar.png`;
 
-			const { data: uploadData, error: uploadError } = await supabase.storage
+			const { error: uploadError } = await supabase.storage
 				.from('profile-pictures')
 				.upload(filePath, compressedFile, {
 					upsert: true

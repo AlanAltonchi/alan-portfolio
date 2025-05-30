@@ -193,24 +193,27 @@ export function createTabDataLoader() {
 
 		try {
 			switch (activeTab) {
-				case 'page-code':
+				case 'page-code': {
 					const newPageCode = await loadPageCode(formatRoutePath(currentRoute));
 					if (newPageCode !== pageCode) {
 						pageCode = newPageCode;
 					}
 					break;
-				case 'rls-rules':
+				}
+				case 'rls-rules': {
 					const newRlsRules = await loadRLSRules(devData);
 					if (newRlsRules !== rlsRules) {
 						rlsRules = newRlsRules;
 					}
 					break;
-				case 'schema':
+				}
+				case 'schema': {
 					const newSchemaInfo = await loadSchemaInfo(devData);
 					if (newSchemaInfo !== schemaInfo) {
 						schemaInfo = newSchemaInfo;
 					}
 					break;
+				}
 			}
 		} finally {
 			loading = false;

@@ -14,174 +14,179 @@ type DbCardLabel = Database['public']['Tables']['card_labels']['Row'];
 
 // Extended interfaces with additional properties
 export interface Board extends DbBoard {
-  columns?: Column[];
-  members?: BoardMember[];
-  labels?: CardLabel[];
+	columns?: Column[];
+	members?: BoardMember[];
+	labels?: CardLabel[];
 }
 
 export interface Column extends DbColumn {
-  cards?: Card[];
+	cards?: Card[];
 }
 
 export interface Card extends DbCard {
-  attachments?: CardAttachment[];
-  comments?: CardComment[];
-  checklists?: CardChecklist[];
-  labels?: CardLabel[];
-  assignees?: User[];
-  card_label_assignments?: any[];
-  column?: {
-    id: string;
-    title: string;
-  };
+	attachments?: CardAttachment[];
+	comments?: CardComment[];
+	checklists?: CardChecklist[];
+	labels?: CardLabel[];
+	assignees?: User[];
+	card_label_assignments?: Array<{
+		card_id: string;
+		label_id: string;
+		assigned_at: string;
+		card_labels?: CardLabel;
+	}>;
+	column?: {
+		id: string;
+		title: string;
+	};
 }
 
 export interface BoardMember extends DbBoardMember {
-  user?: User;
+	user?: User;
 }
 
 export interface CardAttachment extends DbCardAttachment {
-  signedUrl?: string;
+	signedUrl?: string;
 }
 
 export interface CardComment extends DbCardComment {
-  user?: User;
+	user?: User;
 }
 
 export interface CardChecklist extends DbCardChecklist {
-  items?: ChecklistItem[];
-  completedCount?: number;
-  totalCount?: number;
+	items?: ChecklistItem[];
+	completedCount?: number;
+	totalCount?: number;
 }
 
-export interface ChecklistItem extends DbChecklistItem {}
+export type ChecklistItem = DbChecklistItem;
 
 export interface BoardActivity extends DbBoardActivity {
-  user?: User;
+	user?: User;
 }
 
-export interface CardLabel extends DbCardLabel {}
+export type CardLabel = DbCardLabel;
 
 // User type from profiles
 export interface User {
-  id: string;
-  email?: string;
-  username?: string;
-  full_name?: string;
-  avatar_url?: string;
+	id: string;
+	email?: string;
+	username?: string;
+	full_name?: string;
+	avatar_url?: string;
 }
 
 // Form types for creating/updating entities
 export interface CreateBoardInput {
-  title: string;
-  description?: string;
+	title: string;
+	description?: string;
 }
 
 export interface UpdateBoardInput {
-  title?: string;
-  description?: string;
+	title?: string;
+	description?: string;
 }
 
 export interface CreateColumnInput {
-  title: string;
-  board_id: string;
-  position?: number;
+	title: string;
+	board_id: string;
+	position?: number;
 }
 
 export interface UpdateColumnInput {
-  title?: string;
-  position?: number;
+	title?: string;
+	position?: number;
 }
 
 export interface CreateCardInput {
-  title: string;
-  description?: string;
-  column_id: string;
-  board_id: string;
-  position?: number;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  due_date?: string;
+	title: string;
+	description?: string;
+	column_id: string;
+	board_id: string;
+	position?: number;
+	priority?: 'low' | 'medium' | 'high' | 'urgent';
+	due_date?: string;
 }
 
 export interface UpdateCardInput {
-  title?: string;
-  description?: string;
-  column_id?: string;
-  position?: number;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  due_date?: string;
+	title?: string;
+	description?: string;
+	column_id?: string;
+	position?: number;
+	priority?: 'low' | 'medium' | 'high' | 'urgent';
+	due_date?: string;
 }
 
 export interface MoveCardInput {
-  cardId: string;
-  sourceColumnId: string;
-  targetColumnId: string;
-  newPosition: number;
+	cardId: string;
+	sourceColumnId: string;
+	targetColumnId: string;
+	newPosition: number;
 }
 
 // Filter and view types
 export interface FilterState {
-  search: string;
-  searchQuery?: string;
-  labels: string[];
-  assignees: string[];
-  priority: ('low' | 'medium' | 'high' | 'urgent')[];
-  priorities?: string[];
-  hasDueDate: boolean | null;
-  isOverdue: boolean | null;
-  dueDate?: string;
+	search: string;
+	searchQuery?: string;
+	labels: string[];
+	assignees: string[];
+	priority: ('low' | 'medium' | 'high' | 'urgent')[];
+	priorities?: string[];
+	hasDueDate: boolean | null;
+	isOverdue: boolean | null;
+	dueDate?: string;
 }
 
 export type ViewMode = 'board' | 'list' | 'calendar' | 'timeline';
 
 // Drag and drop types
 export interface DragItem {
-  type: 'card';
-  cardId: string;
-  columnId: string;
-  boardId: string;
-  index: number;
+	type: 'card';
+	cardId: string;
+	columnId: string;
+	boardId: string;
+	index: number;
 }
 
 export interface DropResult {
-  targetColumnId: string;
-  targetIndex: number;
+	targetColumnId: string;
+	targetIndex: number;
 }
 
 // Real-time event types
-export type KanbanEventType = 
-  | 'board.created'
-  | 'board.updated'
-  | 'board.deleted'
-  | 'column.created'
-  | 'column.updated'
-  | 'column.deleted'
-  | 'column.moved'
-  | 'card.created'
-  | 'card.updated'
-  | 'card.deleted'
-  | 'card.moved'
-  | 'member.added'
-  | 'member.removed'
-  | 'member.updated';
+export type KanbanEventType =
+	| 'board.created'
+	| 'board.updated'
+	| 'board.deleted'
+	| 'column.created'
+	| 'column.updated'
+	| 'column.deleted'
+	| 'column.moved'
+	| 'card.created'
+	| 'card.updated'
+	| 'card.deleted'
+	| 'card.moved'
+	| 'member.added'
+	| 'member.removed'
+	| 'member.updated';
 
 export interface KanbanEvent {
-  type: KanbanEventType;
-  boardId: string;
-  userId: string;
-  data: any;
-  timestamp: string;
+	type: KanbanEventType;
+	boardId: string;
+	userId: string;
+	data: Record<string, unknown>;
+	timestamp: string;
 }
 
 // Store state types
 export interface KanbanState {
-  boards: Board[];
-  currentBoard: Board | null;
-  currentCard: Card | null;
-  loading: boolean;
-  error: string | null;
-  filters: FilterState;
-  viewMode: ViewMode;
-  draggedItem: DragItem | null;
-  activeUsers: Map<string, User>;
+	boards: Board[];
+	currentBoard: Board | null;
+	currentCard: Card | null;
+	loading: boolean;
+	error: string | null;
+	filters: FilterState;
+	viewMode: ViewMode;
+	draggedItem: DragItem | null;
+	activeUsers: Map<string, User>;
 }

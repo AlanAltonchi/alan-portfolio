@@ -41,7 +41,6 @@
 	title="Sign in to your account"
 	subtitle="Or <a href='/auth/signup' class='text-blue-600 hover:text-blue-500 dark:text-blue-400'>create a new account</a>"
 >
-	{#snippet children()}
 		{#if success}
 			<div
 				class="mb-6 rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
@@ -71,5 +70,4 @@
 				</a>
 			</p>
 		</div>
-	{/snippet}
 </AuthLayout>

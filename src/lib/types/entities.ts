@@ -3,7 +3,6 @@ import type { Tables } from './database.js';
 // Main entity types (using Row types from database)
 export type User = Tables<'users'>;
 export type Profile = Tables<'profiles'>;
-export type Task = Tables<'tasks'>;
 export type Message = Tables<'messages'>;
 export type Conversation = Tables<'conversations'>;
 export type Email = Tables<'emails'>;
@@ -39,9 +38,6 @@ export type ConversationWithUsers = Conversation & {
 export type UserWithProfile = User & {
 	profile: Profile;
 };
-
-// Task status enum (based on your database schema)
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 // Common utility types
 export type ID = string;

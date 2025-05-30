@@ -42,15 +42,6 @@ export async function handleAuthStateChange(
 		return;
 	}
 
-	// If switching users (different user ID), reset stores to prevent data leakage
-	if (
-		currentSession?.user?.id &&
-		newSession?.user?.id &&
-		currentSession.user.id !== newSession.user.id
-	) {
-		resetStoresForUserSwitch();
-	}
-
 	// Invalidate auth if session changed
 	if (newSession?.expires_at !== currentSession?.expires_at) {
 		invalidate('supabase:auth');
@@ -66,6 +57,15 @@ export async function handleAuthStateChange(
 				console.error('Failed to get user:', userError);
 				await handleInvalidSession(supabase);
 				return;
+			}
+
+			// Check for user switching by comparing user IDs
+			const currentUserId = currentSession?.user?.id;
+			const newUserId = userData.user.id;
+
+			// If switching users (different user ID), reset stores to prevent data leakage
+			if (currentUserId && newUserId && currentUserId !== newUserId) {
+				resetStoresForUserSwitch();
 			}
 
 			// Validate user exists in database

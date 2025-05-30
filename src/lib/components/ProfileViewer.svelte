@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	// import { onMount } from 'svelte'; // Unused
 	import { Card } from '$lib/components';
 	import type { Profile } from '$lib/stores/profile.svelte';
 
@@ -76,7 +76,7 @@
 				<div>
 					<h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Interests</h4>
 					<div class="flex flex-wrap gap-2">
-						{#each profile.interests as interest}
+						{#each profile.interests as interest (interest)}
 							<span
 								class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-800 dark:bg-gray-700 dark:text-gray-200"
 							>

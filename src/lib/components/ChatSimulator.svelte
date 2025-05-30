@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { Avatar, Button, Input } from '$lib/components';
-	import type { Message } from '$lib/types';
+	import { Avatar, Button } from '$lib/components';
+	import type { Message, ConversationWithUsers } from '$lib/types';
+	import type { SupabaseClient } from '@supabase/supabase-js';
+	import type { Database } from '$lib/types';
 	import { formatTime, renderMarkdown, scrollToBottomWithImageLoad } from '$lib/utils/chat';
 	import {
 		createDragHandler,
@@ -23,8 +25,8 @@
 		isOpen?: boolean;
 		conversationId: string;
 		currentUserId: string;
-		supabase: any;
-		conversation: any;
+		supabase: SupabaseClient<Database>;
+		conversation: ConversationWithUsers;
 	}>();
 
 	let messages = $state<Message[]>([]);
@@ -56,17 +58,17 @@
 	// Auto-resize textarea and manage scrollbar visibility
 	function handleTextareaInput(event: Event) {
 		const textarea = event.target as HTMLTextAreaElement;
-		
+
 		// Reset height to auto to get the correct scrollHeight
 		textarea.style.height = 'auto';
-		
+
 		// Calculate the new height (max 4 lines for simulator)
 		const lineHeight = 20; // Approximate line height in pixels
 		const maxHeight = lineHeight * 4; // 4 lines max for simulator
 		const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-		
+
 		textarea.style.height = `${newHeight}px`;
-		
+
 		// Call the original input handler
 		handleInput();
 	}
@@ -117,18 +119,21 @@
 		realtimeManager.subscribeToTyping();
 	}
 
-	function handleMessageUpdate(payload: { eventType: string; new: Message; old: Message }) {
+	function handleMessageUpdate(payload: { eventType: string; new?: unknown; old?: unknown }) {
 		if (payload.eventType === 'INSERT') {
-			messages = [...messages, payload.new];
-			if (payload.new.image_url) {
+			const newMessage = payload.new as Message;
+			messages = [...messages, newMessage];
+			if (newMessage.image_url) {
 				scrollToBottomWithImageLoad(messagesContainer || null);
 			} else {
 				setTimeout(() => scrollToBottom(), 50);
 			}
 		} else if (payload.eventType === 'UPDATE') {
-			messages = messages.map((m) => (m.id === payload.new.id ? payload.new : m));
+			const updatedMessage = payload.new as Message;
+			messages = messages.map((m) => (m.id === updatedMessage.id ? updatedMessage : m));
 		} else if (payload.eventType === 'DELETE') {
-			messages = messages.filter((m) => m.id !== payload.old.id);
+			const deletedMessage = payload.old as Message;
+			messages = messages.filter((m) => m.id !== deletedMessage.id);
 		}
 	}
 
@@ -226,59 +231,10 @@
 	}
 </script>
 
-<style>
-	/* Custom scrollbar styling that matches the design */
-	.custom-scrollbar {
-		scrollbar-width: thin;
-		scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-	}
-	
-	.custom-scrollbar::-webkit-scrollbar {
-		width: 6px;
-	}
-	
-	.custom-scrollbar::-webkit-scrollbar-track {
-		background: transparent;
-		border-radius: 10px;
-	}
-	
-	.custom-scrollbar::-webkit-scrollbar-thumb {
-		background: rgba(156, 163, 175, 0.3);
-		border-radius: 10px;
-		transition: background-color 0.2s ease;
-	}
-	
-	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-		background: rgba(156, 163, 175, 0.5);
-	}
-	
-	/* Dark mode scrollbar */
-	:global(.dark) .custom-scrollbar {
-		scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
-	}
-	
-	:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-		background: rgba(75, 85, 99, 0.4);
-	}
-	
-	:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-		background: rgba(75, 85, 99, 0.6);
-	}
-	
-	/* Hide scrollbar when content fits in one line */
-	.single-line-textarea {
-		overflow: hidden;
-	}
-	
-	.multi-line-textarea {
-		overflow-y: auto;
-	}
-</style>
-
 {#if isOpen}
 	<div
 		bind:this={simulatorElement}
-		class="fixed z-50 flex h-[500px] w-96 flex-col rounded-lg border border-gray-200/30 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md shadow-2xl dark:border-gray-700/30 {dragHandler.isDragging
+		class="fixed z-50 flex h-[500px] w-96 flex-col rounded-lg border border-gray-200/30 bg-white/60 shadow-2xl backdrop-blur-md dark:border-gray-700/30 dark:bg-gray-800/60 {dragHandler.isDragging
 			? 'cursor-grabbing'
 			: ''}"
 		style="left: {dragHandler.position.x}px; top: {dragHandler.position.y}px;"
@@ -286,15 +242,22 @@
 	>
 		<!-- Header -->
 		<div
-			class="flex cursor-grab items-center justify-between border-b border-gray-200/30 p-4 active:cursor-grabbing dark:border-gray-700/30 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm"
+			class="flex cursor-grab items-center justify-between border-b border-gray-200/30 bg-white/40 p-4 backdrop-blur-sm active:cursor-grabbing dark:border-gray-700/30 dark:bg-gray-800/40"
 			onmousedown={(e) => simulatorElement && dragHandler.handleMouseDown(e, simulatorElement)}
 			role="presentation"
 		>
-			<h3 class="flex items-center gap-2 text-lg font-semibold select-none text-gray-800 dark:text-gray-200">
+			<h3
+				class="flex items-center gap-2 text-lg font-semibold text-gray-800 select-none dark:text-gray-200"
+			>
 				<MessageCircle class="h-5 w-5" />
 				Chat Simulator ({otherUser?.profiles?.name || 'Test User'})
 			</h3>
-			<Button variant="ghost" size="sm" onclick={closePopup} class="hover:bg-white/50 dark:hover:bg-gray-700/50">
+			<Button
+				variant="ghost"
+				size="sm"
+				onclick={closePopup}
+				class="hover:bg-white/50 dark:hover:bg-gray-700/50"
+			>
 				<X class="h-4 w-4" />
 			</Button>
 		</div>
@@ -304,7 +267,7 @@
 			bind:this={messagesContainer}
 			class="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4"
 		>
-			{#each messages as message}
+			{#each messages as message (message.id)}
 				{@const messageFromSimulator = isFromSimulator(message)}
 				<div class="flex {messageFromSimulator ? 'justify-end' : 'justify-start'} gap-2">
 					{#if !messageFromSimulator}
@@ -381,15 +344,25 @@
 		</div>
 
 		<!-- Message Input -->
-		<div class="relative border-t border-gray-200/30 px-4 py-4 dark:border-gray-700/30 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md">
+		<div
+			class="relative border-t border-gray-200/30 bg-white/60 px-4 py-4 backdrop-blur-md dark:border-gray-700/30 dark:bg-gray-800/60"
+		>
 			<!-- Typing Indicator -->
 			{#if typingManager?.mainUserTyping}
-				<div class="absolute -top-6 left-4 mb-2 px-3 py-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-lg">
+				<div
+					class="absolute -top-6 left-4 mb-2 rounded-full border border-gray-200/50 bg-white/80 px-3 py-1 shadow-lg backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/80"
+				>
 					<div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
 						<div class="flex gap-1">
-							<div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-							<div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-							<div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+							<div class="h-1 w-1 animate-bounce rounded-full bg-gray-400"></div>
+							<div
+								class="h-1 w-1 animate-bounce rounded-full bg-gray-400"
+								style="animation-delay: 0.1s"
+							></div>
+							<div
+								class="h-1 w-1 animate-bounce rounded-full bg-gray-400"
+								style="animation-delay: 0.2s"
+							></div>
 						</div>
 						<span class="font-medium">
 							{mainUser?.profiles?.name || 'Main user'} is typing...
@@ -398,7 +371,7 @@
 				</div>
 			{/if}
 
-			<div class="flex gap-3 items-end">
+			<div class="flex items-end gap-3">
 				<input
 					type="file"
 					accept="image/*"
@@ -406,35 +379,45 @@
 					onchange={handleImageUpload}
 					class="hidden"
 				/>
-				<Button 
-					variant="ghost" 
-					size="sm" 
-					onclick={() => fileInput?.click()} 
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => fileInput?.click()}
 					title="Upload image"
-					class="h-[40px] w-[40px] my-auto bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 hover:bg-blue-50/80 dark:hover:bg-blue-900/20 hover:border-blue-200/50 dark:hover:border-blue-400/30 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl group rounded-xl flex items-center justify-center"
+					class="group my-auto flex h-[40px] w-[40px] items-center justify-center rounded-xl border border-gray-200/50 bg-white/50 shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-blue-200/50 hover:bg-blue-50/80 hover:shadow-xl dark:border-gray-600/50 dark:bg-gray-700/50 dark:hover:border-blue-400/30 dark:hover:bg-blue-900/20"
 				>
-					<Image class="h-4 w-4 shrink-0 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+					<Image
+						class="h-4 w-4 shrink-0 text-gray-600 transition-colors group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400"
+					/>
 				</Button>
-				
-				<div class="flex-1 relative">
+
+				<div class="relative flex-1">
 					<textarea
 						bind:this={textareaElement}
 						bind:value={newMessage}
 						placeholder="Type as {otherUser?.profiles?.name || 'test user'}..."
-						class="w-full resize-none rounded-xl border border-gray-300/50 dark:border-gray-600/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm px-3 py-2.5 text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 focus:outline-none dark:text-white transition-all duration-200 shadow-lg hover:shadow-xl custom-scrollbar {newMessage.includes('\n') || (textareaElement?.scrollHeight || 0) > 50 ? 'multi-line-textarea' : 'single-line-textarea'}"
+						class="custom-scrollbar w-full resize-none rounded-xl border border-gray-300/50 bg-white/70 px-3 py-2.5 text-sm placeholder-gray-500 shadow-lg backdrop-blur-sm transition-all duration-200 hover:shadow-xl focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 focus:outline-none dark:border-gray-600/50 dark:bg-gray-800/70 dark:text-white dark:placeholder-gray-400 {newMessage.includes(
+							'\n'
+						) || (textareaElement?.scrollHeight || 0) > 50
+							? 'multi-line-textarea'
+							: 'single-line-textarea'}"
 						rows="1"
 						style="min-height: 40px; max-height: 80px; line-height: 18px;"
 						onkeydown={handleKeydown}
 						oninput={handleTextareaInput}
 					></textarea>
 					<!-- Floating label effect -->
-					<div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 pointer-events-none opacity-0 transition-opacity duration-200 {newMessage.trim() ? 'opacity-100' : ''}"></div>
+					<div
+						class="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 transition-opacity duration-200 {newMessage.trim()
+							? 'opacity-100'
+							: ''}"
+					></div>
 				</div>
-				
-				<Button 
-					onclick={() => sendMessage()} 
+
+				<Button
+					onclick={() => sendMessage()}
 					disabled={!newMessage.trim()}
-					class="h-[40px] w-[40px] my-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 dark:disabled:from-gray-600 dark:disabled:to-gray-700 text-white shadow-lg hover:shadow-xl disabled:shadow-none hover:scale-105 disabled:scale-100 transition-all duration-200 rounded-xl flex items-center justify-center"
+					class="my-auto flex h-[40px] w-[40px] items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl disabled:scale-100 disabled:from-gray-300 disabled:to-gray-400 disabled:shadow-none dark:disabled:from-gray-600 dark:disabled:to-gray-700"
 				>
 					<Send class="h-4 w-4 shrink-0" />
 				</Button>
@@ -445,14 +428,23 @@
 				<!-- Keyboard Shortcuts Info -->
 				<div class="flex items-center gap-2 text-[12px] text-gray-400 dark:text-gray-500">
 					<div class="flex items-center gap-1">
-						<kbd class="px-1.5 py-0.5 bg-gray-100/50 dark:bg-gray-700/50 rounded text-[11px] font-mono border border-gray-200/30 dark:border-gray-600/30">Enter</kbd>
+						<kbd
+							class="rounded border border-gray-200/30 bg-gray-100/50 px-1.5 py-0.5 font-mono text-[11px] dark:border-gray-600/30 dark:bg-gray-700/50"
+							>Enter</kbd
+						>
 						<span>to send</span>
 					</div>
 					<span class="text-gray-300/50 dark:text-gray-600/50">•</span>
 					<div class="flex items-center gap-1">
-						<kbd class="px-1.5 py-0.5 bg-gray-100/50 dark:bg-gray-700/50 rounded text-[11px] font-mono border border-gray-200/30 dark:border-gray-600/30">Shift</kbd>
+						<kbd
+							class="rounded border border-gray-200/30 bg-gray-100/50 px-1.5 py-0.5 font-mono text-[11px] dark:border-gray-600/30 dark:bg-gray-700/50"
+							>Shift</kbd
+						>
 						<span>+</span>
-						<kbd class="px-1.5 py-0.5 bg-gray-100/50 dark:bg-gray-700/50 rounded text-[11px] font-mono border border-gray-200/30 dark:border-gray-600/30">Enter</kbd>
+						<kbd
+							class="rounded border border-gray-200/30 bg-gray-100/50 px-1.5 py-0.5 font-mono text-[11px] dark:border-gray-600/30 dark:bg-gray-700/50"
+							>Enter</kbd
+						>
 						<span>for new line</span>
 					</div>
 				</div>
@@ -460,3 +452,52 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	/* Custom scrollbar styling that matches the design */
+	.custom-scrollbar {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+		border-radius: 10px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: rgba(156, 163, 175, 0.3);
+		border-radius: 10px;
+		transition: background-color 0.2s ease;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: rgba(156, 163, 175, 0.5);
+	}
+
+	/* Dark mode scrollbar */
+	:global(.dark) .custom-scrollbar {
+		scrollbar-color: rgba(75, 85, 99, 0.4) transparent;
+	}
+
+	:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+		background: rgba(75, 85, 99, 0.4);
+	}
+
+	:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: rgba(75, 85, 99, 0.6);
+	}
+
+	/* Hide scrollbar when content fits in one line */
+	.single-line-textarea {
+		overflow: hidden;
+	}
+
+	.multi-line-textarea {
+		overflow-y: auto;
+	}
+</style>

@@ -248,7 +248,7 @@
 
 					{#if interestsManager.interests.length > 0}
 						<div class="flex flex-wrap gap-2">
-							{#each interestsManager.interests as interest}
+							{#each interestsManager.interests as interest (interest)}
 								<span
 									class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
 								>

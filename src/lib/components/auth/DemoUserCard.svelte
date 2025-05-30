@@ -10,7 +10,7 @@
 	const handleEnhance: SubmitFunction = () => {
 		loading = true;
 
-		return async ({ result, update }) => {
+		return async ({ update }) => {
 			await update();
 		};
 	};

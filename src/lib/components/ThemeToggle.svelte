@@ -56,7 +56,7 @@
 			<div
 				class="absolute top-full right-0 mt-1 w-32 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
 			>
-				{#each themes as themeOption}
+				{#each themes as themeOption (themeOption.value)}
 					<button
 						class="flex w-full items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 {themeState.current ===
 						themeOption.value

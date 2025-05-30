@@ -6,7 +6,6 @@ export type {
 	// Main entity types
 	User,
 	Profile,
-	Task,
 	Message,
 	Conversation,
 	Email,
@@ -19,7 +18,6 @@ export type {
 	UserWithProfile,
 
 	// Utility types
-	TaskStatus,
 	ID,
 	Timestamp,
 	ApiResponse,

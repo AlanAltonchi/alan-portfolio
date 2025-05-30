@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { fade, slide, fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import Button from './Button.svelte';
-	import { onMount } from 'svelte';
+	// import { onMount } from 'svelte'; // Unused
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -17,34 +17,34 @@
 	let {
 		open = false,
 		title,
-		side = 'right',
-		size = 'md',
+		// side = 'right', // Unused
+		// size = 'md', // Unused
 		closable = true,
 		onclose,
 		children
 	}: Props = $props();
 
-	const sideClasses = {
-		left: 'left-0 top-0 h-full',
-		right: 'right-0 top-0 h-full',
-		top: 'top-0 left-0 w-full',
-		bottom: 'bottom-0 left-0 w-full'
-	};
+	// const sideClasses = { // Unused
+	// 	left: 'left-0 top-0 h-full',
+	// 	right: 'right-0 top-0 h-full',
+	// 	top: 'top-0 left-0 w-full',
+	// 	bottom: 'bottom-0 left-0 w-full'
+	// };
 
-	const sizeClasses = {
-		sm: side === 'left' || side === 'right' ? 'w-80' : 'h-80',
-		md: side === 'left' || side === 'right' ? 'w-96' : 'h-96',
-		lg: side === 'left' || side === 'right' ? 'w-[32rem]' : 'h-[32rem]',
-		xl: 'w-full h-full',
-		full: 'w-full h-full'
-	};
+	// const sizeClasses = { // Unused
+	// 	sm: side === 'left' || side === 'right' ? 'w-80' : 'h-80',
+	// 	md: side === 'left' || side === 'right' ? 'w-96' : 'h-96',
+	// 	lg: side === 'left' || side === 'right' ? 'w-[32rem]' : 'h-[32rem]',
+	// 	xl: 'w-full h-full',
+	// 	full: 'w-full h-full'
+	// };
 
-	const transformClasses = {
-		left: open ? 'translate-x-0' : '-translate-x-full',
-		right: open ? 'translate-x-0' : 'translate-x-full',
-		top: open ? 'translate-y-0' : '-translate-y-full',
-		bottom: open ? 'translate-y-0' : 'translate-y-full'
-	};
+	// const transformClasses = { // Unused
+	// 	left: open ? 'translate-x-0' : '-translate-x-full',
+	// 	right: open ? 'translate-x-0' : 'translate-x-full',
+	// 	top: open ? 'translate-y-0' : '-translate-y-full',
+	// 	bottom: open ? 'translate-y-0' : 'translate-y-full'
+	// };
 
 	function handleBackdropClick(event: MouseEvent) {
 		if (closable && event.target === event.currentTarget) {

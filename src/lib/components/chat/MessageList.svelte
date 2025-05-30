@@ -17,12 +17,8 @@
 	}>();
 </script>
 
-<div
-	bind:this={messagesContainer}
-	class="flex-1 space-y-4 overflow-y-auto p-4"
-	role="presentation"
->
-	{#each messages as message}
+<div bind:this={messagesContainer} class="flex-1 space-y-4 overflow-y-auto p-4" role="presentation">
+	{#each messages as message (message.id)}
 		<MessageBubble {message} {conversation} {currentUserId} {onImageLoad} />
 	{/each}
 </div>

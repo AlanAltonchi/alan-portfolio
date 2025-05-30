@@ -1,3 +1,5 @@
+import type { User, Session } from '@supabase/supabase-js';
+
 export interface DemoUserData {
 	email: string;
 	password: string;
@@ -21,6 +23,6 @@ export interface AuthState {
 export interface AuthResult {
 	success: boolean;
 	error?: string;
-	user?: any;
-	session?: any;
+	user?: User;
+	session?: Session;
 }

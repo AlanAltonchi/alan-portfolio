@@ -9,7 +9,8 @@
 		email = '',
 		size = 'md' as AvatarSize,
 		isSimulator = false,
-		class: className = ''
+		class: className = '',
+		alt = ''
 	} = $props<{
 		src?: string | null;
 		name?: string;
@@ -17,6 +18,7 @@
 		size?: AvatarSize;
 		isSimulator?: boolean;
 		class?: string;
+		alt?: string;
 	}>();
 
 	// Size mappings
@@ -93,7 +95,7 @@
 	{#if src}
 		<img
 			{src}
-			alt="{name || email || 'User'}'s avatar"
+			alt={alt || name || email || 'User avatar'}
 			class="h-full w-full object-cover"
 			loading="lazy"
 		/>

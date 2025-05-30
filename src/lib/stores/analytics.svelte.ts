@@ -78,7 +78,10 @@ class AnalyticsStore {
 	}
 
 	get avgSessionDuration() {
-		const total = this.state.overview.reduce((sum, day) => sum + (day.avg_session_duration || 0), 0);
+		const total = this.state.overview.reduce(
+			(sum, day) => sum + (day.avg_session_duration || 0),
+			0
+		);
 		return this.state.overview.length > 0 ? Math.round(total / this.state.overview.length) : 0;
 	}
 
@@ -90,8 +93,11 @@ class AnalyticsStore {
 	get chartData() {
 		return [...this.state.overview]
 			.sort((a, b) => new Date(a.metric_date).getTime() - new Date(b.metric_date).getTime())
-			.map(day => ({
-				date: new Date(day.metric_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+			.map((day) => ({
+				date: new Date(day.metric_date).toLocaleDateString('en-US', {
+					month: 'short',
+					day: 'numeric'
+				}),
 				pageViews: day.page_views || 0,
 				uniqueVisitors: day.unique_visitors || 0,
 				bounceRate: day.bounce_rate || 0
@@ -113,25 +119,25 @@ class AnalyticsStore {
 					.gte('metric_date', startDate)
 					.lte('metric_date', endDate)
 					.order('metric_date', { ascending: false }),
-				
+
 				supabase
 					.from('analytics_traffic_sources')
 					.select('*')
 					.eq('metric_date', endDate)
 					.order('visits', { ascending: false }),
-				
+
 				supabase
 					.from('analytics_device_stats')
 					.select('*')
 					.eq('metric_date', endDate)
 					.order('count', { ascending: false }),
-				
+
 				supabase
 					.from('analytics_page_performance')
 					.select('*')
 					.eq('metric_date', endDate)
 					.order('views', { ascending: false }),
-				
+
 				supabase
 					.from('analytics_user_activity')
 					.select('*')

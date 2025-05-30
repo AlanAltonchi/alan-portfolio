@@ -43,7 +43,13 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		// Use client session if we don't have server session or if client session is newer
 		if (!session || (clientSession && clientSession.expires_at !== session.expires_at)) {
 			session = clientSession;
-			user = clientSession?.user ?? null;
+			// Get authenticated user data instead of using session.user
+			if (clientSession) {
+				const { data: userData } = await supabase.auth.getUser();
+				user = userData.user;
+			} else {
+				user = null;
+			}
 		}
 	}
 

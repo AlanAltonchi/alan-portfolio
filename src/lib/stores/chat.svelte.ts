@@ -1,5 +1,5 @@
-import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
-import type { ConversationWithUsers, Message } from '$lib/types';
+import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type { ConversationWithUsers, Message, TypingStatus } from '$lib/types';
 import {
 	ConversationService,
 	MessageService,
@@ -370,7 +370,7 @@ class ChatStore {
 						table: 'messages',
 						filter: `conversation_id=eq.${conversation.id}`
 					},
-					(payload: any) => {
+					(payload) => {
 						this.handleMessageUpdate(payload);
 					}
 				)
@@ -405,7 +405,7 @@ class ChatStore {
 						table: 'typing_status',
 						filter: `conversation_id=eq.${conversation.id}`
 					},
-					(payload: any) => {
+					(payload) => {
 						this.handleTypingUpdate(payload, conversation);
 					}
 				)
@@ -420,40 +420,48 @@ class ChatStore {
 		});
 	}
 
-	private handleMessageUpdate(payload: any) {
+	private handleMessageUpdate(payload: RealtimePostgresChangesPayload<{
+		[key: string]: unknown;
+	}>): void {
 		// Ensure we only handle messages for the currently selected conversation
+		const messageData = payload.new as Message;
 		if (
 			!this.state.selectedConversation ||
-			payload.new?.conversation_id !== this.state.selectedConversation.id
+			messageData?.conversation_id !== this.state.selectedConversation.id
 		) {
 			return;
 		}
 
 		if (payload.eventType === 'INSERT') {
 			// Check for duplicates more thoroughly - this now handles optimistic updates
-			const messageExists = this.state.messages.some((m) => m.id === payload.new.id);
+			const messageExists = this.state.messages.some((m) => m.id === messageData.id);
 			if (!messageExists) {
-				this.state.messages = [...this.state.messages, payload.new as Message];
+				this.state.messages = [...this.state.messages, messageData];
 
-				if (payload.new.image_url) {
+				if (messageData.image_url) {
 					this.scrollToBottomWithImageLoad();
 				} else {
 					setTimeout(() => this.scrollToBottom(), 50);
 				}
 			} else {
+				// No action needed for other cases
 			}
 		} else if (payload.eventType === 'UPDATE') {
 			this.state.messages = this.state.messages.map((m) =>
-				m.id === payload.new.id ? (payload.new as Message) : m
+				m.id === messageData.id ? messageData : m
 			);
 		} else if (payload.eventType === 'DELETE') {
-			this.state.messages = this.state.messages.filter((m) => m.id !== payload.old.id);
+			const deletedMessage = payload.old as Message;
+			this.state.messages = this.state.messages.filter((m) => m.id !== deletedMessage.id);
 		}
 	}
 
-	private handleTypingUpdate(payload: any, conversation: ConversationWithUsers) {
+	private handleTypingUpdate(
+		payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>, 
+		conversation: ConversationWithUsers
+	): void {
 		if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-			const typingData = payload.new;
+			const typingData = payload.new as TypingStatus;
 			const isSelfConversation = conversation.user_a === conversation.user_b;
 
 			if (isSelfConversation) {

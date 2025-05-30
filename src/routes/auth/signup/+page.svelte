@@ -87,7 +87,6 @@
 	subtitle="Or <a href='/auth/login' class='text-blue-600 hover:text-blue-500 dark:text-blue-400'>sign in to existing account</a>"
 	showCard={false}
 >
-	{#snippet children()}
 		<!-- Demo User Section -->
 		<DemoUserCard bind:loading={demoLoading} />
 
@@ -144,5 +143,4 @@
 				</p>
 			</div>
 		</div>
-	{/snippet}
 </AuthLayout>
