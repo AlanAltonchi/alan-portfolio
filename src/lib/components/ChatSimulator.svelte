@@ -350,7 +350,7 @@
 			<!-- Typing Indicator -->
 			{#if typingManager?.mainUserTyping}
 				<div
-					class="absolute -top-6 left-4 mb-2 rounded-full border border-gray-200/50 bg-white/80 px-3 py-1 shadow-lg backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/80"
+					class="absolute -top-8 left-4 mb-2 rounded-full border border-gray-200/50 bg-white/80 px-3 py-1 shadow-lg backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/80"
 				>
 					<div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
 						<div class="flex gap-1">

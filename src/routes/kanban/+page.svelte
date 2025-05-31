@@ -5,6 +5,9 @@
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 
 	const kanbanState = $derived(kanbanStore.state);
 	const user = $derived(authStore.user);
@@ -14,7 +17,8 @@
 	let creating = $state(false);
 
 	onMount(() => {
-		if (user) {
+		// Use currentUserId from server data to ensure we have the user ID
+		if (data.currentUserId) {
 			kanbanStore.loadBoards();
 		}
 	});
