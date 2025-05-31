@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { kanbanStore } from '$lib/stores/kanban.svelte';
-	import CardModal from './CardModal.svelte';
 	import type { Card, DragItem } from '$lib/types/kanban';
 
 	interface Props {
@@ -8,6 +7,7 @@
 		columnId: string;
 		boardId: string;
 		index: number;
+		onCardClick?: (card: Card) => void;
 	}
 
 	interface CardLabelAssignment {
@@ -23,10 +23,9 @@
 		};
 	}
 
-	let { card, columnId, boardId, index }: Props = $props();
+	let { card, columnId, boardId, index, onCardClick }: Props = $props();
 
 	let dragging = $state(false);
-	let showModal = $state(false);
 
 	function handleDragStart(e: DragEvent) {
 		dragging = true;
@@ -50,18 +49,38 @@
 		kanbanStore.setDraggedItem(null);
 	}
 
-	function getPriorityColor(priority?: string | null) {
+	function getPriorityStyles(priority?: string | null) {
 		switch (priority) {
 			case 'urgent':
-				return 'border-red-500 bg-red-50 dark:bg-red-900/10';
+				return {
+					border: 'border-l-4 border-l-red-500',
+					bg: 'bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20',
+					glow: 'group-hover:shadow-red-200 dark:group-hover:shadow-red-900/50'
+				};
 			case 'high':
-				return 'border-orange-500 bg-orange-50 dark:bg-orange-900/10';
+				return {
+					border: 'border-l-4 border-l-orange-500',
+					bg: 'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20',
+					glow: 'group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/50'
+				};
 			case 'medium':
-				return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10';
+				return {
+					border: 'border-l-4 border-l-yellow-500',
+					bg: 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20',
+					glow: 'group-hover:shadow-yellow-200 dark:group-hover:shadow-yellow-900/50'
+				};
 			case 'low':
-				return 'border-green-500 bg-green-50 dark:bg-green-900/10';
+				return {
+					border: 'border-l-4 border-l-green-500',
+					bg: 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20',
+					glow: 'group-hover:shadow-green-200 dark:group-hover:shadow-green-900/50'
+				};
 			default:
-				return 'border-gray-200 dark:border-gray-600';
+				return {
+					border: 'border-l-4 border-l-gray-300 dark:border-l-gray-600',
+					bg: 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900',
+					glow: 'group-hover:shadow-gray-200 dark:group-hover:shadow-gray-700'
+				};
 		}
 	}
 
@@ -96,20 +115,22 @@
 
 	function handleCardClick(e: MouseEvent) {
 		// Prevent opening modal when dragging
-		if (
-			(!dragging && e.target === e.currentTarget) ||
-			(e.target as HTMLElement).closest('.card-content')
-		) {
-			showModal = true;
+		if (!dragging) {
+			e.preventDefault();
+			e.stopPropagation();
+			onCardClick?.(card);
 		}
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
-			showModal = true;
+			onCardClick?.(card);
 		}
 	}
+
+	// Get priority styles
+	const priorityStyles = $derived(getPriorityStyles(card.priority));
 </script>
 
 <div
@@ -119,38 +140,28 @@
 	onclick={handleCardClick}
 	onkeydown={handleKeydown}
 	data-card-id={card.id}
-	class="group cursor-move rounded-xl border-l-4 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:bg-gray-700 {getPriorityColor(
-		card.priority
-	)}"
+	class="group relative cursor-pointer overflow-hidden rounded-xl {priorityStyles.border} {priorityStyles.bg} p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl {priorityStyles.glow} backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-blue-500/20"
 	class:opacity-50={dragging}
-	class:shadow-xl={dragging}
-	class:scale-105={dragging}
+	class:shadow-2xl={dragging}
+	class:scale-110={dragging}
+	class:rotate-3={dragging}
 	role="button"
 	tabindex="0"
 >
 	<div class="card-content">
 		<!-- Card title -->
 		<h4
-			class="mb-3 leading-tight font-semibold text-gray-900 transition-colors group-hover:text-gray-700 dark:text-white dark:group-hover:text-gray-100"
+			class="mb-3 text-lg leading-tight font-bold text-gray-900 transition-colors duration-200 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text dark:text-white"
 		>
 			{card.title}
 		</h4>
 
 		<!-- Card metadata -->
-		<div class="mb-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+		<div class="mb-3 flex flex-wrap items-center gap-2">
 			<!-- Due date -->
 			{#if dueDate}
 				<span
-					class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium"
-					class:text-red-600={dueDate.isOverdue}
-					class:bg-red-100={dueDate.isOverdue}
-					class:dark:bg-red-900={dueDate.isOverdue}
-					class:text-orange-600={dueDate.isToday}
-					class:bg-orange-100={dueDate.isToday}
-					class:dark:bg-orange-900={dueDate.isToday}
-					class:text-gray-600={!dueDate.isOverdue && !dueDate.isToday}
-					class:bg-gray-100={!dueDate.isOverdue && !dueDate.isToday}
-					class:dark:bg-gray-700={!dueDate.isOverdue && !dueDate.isToday}
+					class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-all duration-200 hover:scale-105 {dueDate.isOverdue ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg' : dueDate.isToday ? 'bg-gradient-to-r from-orange-400 to-amber-400 text-orange-700 dark:text-orange-300' : 'bg-gray-200/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300'}"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -166,7 +177,7 @@
 			<!-- Assignees -->
 			{#if assigneeCount > 0}
 				<span
-					class="flex items-center gap-1.5 rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-600 dark:bg-blue-900 dark:text-blue-400"
+					class="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -182,7 +193,7 @@
 			<!-- Comments -->
 			{#if hasComments}
 				<span
-					class="flex items-center gap-1.5 rounded-md bg-purple-100 px-2 py-1 text-xs font-medium text-purple-600 dark:bg-purple-900 dark:text-purple-400"
+					class="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -198,7 +209,7 @@
 			<!-- Attachments -->
 			{#if hasAttachments}
 				<span
-					class="flex items-center gap-1.5 rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-600 dark:bg-green-900 dark:text-green-400"
+					class="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -215,7 +226,7 @@
 			{#if checklistProgress()}
 				{@const progress = checklistProgress()}
 				<span
-					class="flex items-center gap-1.5 rounded-md bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-600 dark:bg-indigo-900 dark:text-indigo-400"
+					class="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:shadow-lg"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -235,8 +246,8 @@
 				{#each labelAssignments as assignment (assignment.label_id)}
 					{#if assignment.card_labels}
 						<span
-							class="rounded-full px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
-							style="background-color: {assignment.card_labels.color}"
+							class="rounded-full px-3 py-1 text-xs font-bold text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+							style="background: linear-gradient(135deg, {assignment.card_labels.color}, {assignment.card_labels.color}dd)"
 						>
 							{assignment.card_labels.name}
 						</span>
@@ -245,7 +256,7 @@
 			</div>
 		{/if}
 	</div>
-</div>
 
-<!-- Card Modal -->
-<CardModal {card} isOpen={showModal} onClose={() => (showModal = false)} />
+	<!-- Hover gradient overlay -->
+	<div class="absolute inset-0 -z-10 bg-gradient-to-t from-transparent via-transparent to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+</div>

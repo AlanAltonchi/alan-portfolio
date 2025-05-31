@@ -45,12 +45,12 @@
 {#if isOpen}
 	<!-- Backdrop -->
 	<div
-		class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+		class="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
 		onclick={handleBackdropClick}
 		role="presentation"
 	>
 		<!-- Modal -->
-		<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+		<div class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
 			<div
 				class="w-full {sizeClasses[size]} rounded-lg bg-white shadow-lg dark:bg-gray-800"
 				role="dialog"

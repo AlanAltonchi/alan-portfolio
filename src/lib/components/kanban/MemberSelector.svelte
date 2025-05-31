@@ -3,6 +3,7 @@
 	import { authStore } from '$lib/stores/auth.svelte';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { Plus, Check, UserPlus } from 'lucide-svelte';
+	import { kanbanStore } from '$lib/stores/kanban.svelte';
 
 	interface BoardMember {
 		user_id: string;
@@ -27,8 +28,6 @@
 
 	async function loadMembers() {
 		if (!authStore.user) return;
-
-		isLoading = true;
 
 		// Load board members - get user info from users table via board_members
 		const { data: memberData } = await supabase
@@ -60,37 +59,13 @@
 		if (!assignError && assignments) {
 			assignedUserIds = new Set(assignments.map((a) => a.user_id));
 		}
-
-		isLoading = false;
 	}
 
 	async function toggleAssignment(userId: string) {
 		if (!authStore.user) return;
-
-		if (assignedUserIds.has(userId)) {
-			// Remove assignment
-			const { error } = await supabase
-				.from('card_assignees')
-				.delete()
-				.eq('card_id', cardId)
-				.eq('user_id', userId);
-
-			if (!error) {
-				assignedUserIds.delete(userId);
-				assignedUserIds = assignedUserIds;
-			}
-		} else {
-			// Add assignment
-			const { error } = await supabase.from('card_assignees').insert({
-				card_id: cardId,
-				user_id: userId
-			});
-
-			if (!error) {
-				assignedUserIds.add(userId);
-				assignedUserIds = assignedUserIds;
-			}
-		}
+		loadMembers();
+		await kanbanStore.updateCardAssignees(cardId, userId, !assignedUserIds.has(userId));
+		
 	}
 
 	async function inviteMember() {
@@ -135,6 +110,7 @@
 
 	$effect(() => {
 		loadMembers();
+		isLoading = false;
 	});
 </script>
 
@@ -164,7 +140,7 @@
 	<!-- Dropdown -->
 	{#if showDropdown}
 		<div
-			class="absolute top-full left-0 z-50 mt-1 w-64 rounded-md border
+			class="absolute bottom-full left-0 z-[10001] mb-1 w-64 rounded-md border
 			border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
 			<div class="p-2">
@@ -256,7 +232,7 @@
 <!-- Click outside to close -->
 {#if showDropdown}
 	<button
-		class="fixed inset-0 z-40"
+		class="fixed inset-0 z-[10000]"
 		onclick={() => (showDropdown = false)}
 		onkeydown={(e) => {
 			if (e.key === 'Enter' || e.key === ' ') {

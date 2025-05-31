@@ -149,7 +149,7 @@
 	<!-- Dropdown -->
 	{#if showDropdown}
 		<div
-			class="absolute top-full left-0 z-50 mt-1 w-64 rounded-md border
+			class="absolute bottom-full left-0 z-[10001] mb-1 w-64 rounded-md border
 			border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
 		>
 			<div class="p-2">
@@ -290,7 +290,7 @@
 <!-- Click outside to close -->
 {#if showDropdown}
 	<div 
-		class="fixed inset-0 z-40" 
+		class="fixed inset-0 z-[10000]" 
 		onclick={() => (showDropdown = false)}
 		onkeydown={(e) => e.key === 'Escape' && (showDropdown = false)}
 		role="button"

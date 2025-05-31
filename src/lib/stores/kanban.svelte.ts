@@ -141,6 +141,10 @@ class KanbanStore {
             card_label_assignments(
               *,
               card_labels(*)
+            ),
+            card_assignees(
+              user_id,
+              users(id, email)
             )
           )
         `
@@ -162,12 +166,28 @@ class KanbanStore {
 				typedBoard.columns.forEach((column) => {
 					if (column.cards) {
 						column.cards.sort((a, b) => a.position - b.position);
-						// Add column information to each card
+						// Add column information to each card and transform assignees
 						column.cards.forEach((card) => {
 							card.column = {
 								id: column.id,
 								title: column.title
 							};
+							
+							// Transform card_assignees to assignees array
+							if (card.card_assignees) {
+								card.assignees = card.card_assignees
+									.map((assignment) => assignment.users)
+									.filter((user): user is NonNullable<typeof user> => Boolean(user))
+									.map((user) => ({
+										id: user.id,
+										email: user.email,
+										username: user.email?.split('@')[0],
+										full_name: undefined,
+										avatar_url: undefined
+									}));
+							} else {
+								card.assignees = [];
+							}
 						});
 					}
 				});
@@ -851,6 +871,16 @@ class KanbanStore {
 				},
 				(payload) => this.handleCardLabelAssignmentChange(payload)
 			)
+			// Listen to card assignee changes
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'card_assignees'
+				},
+				(payload) => this.handleCardAssigneeChange(payload)
+			)
 			// Listen to activity changes
 			.on(
 				'postgres_changes',
@@ -1060,6 +1090,60 @@ class KanbanStore {
 		}
 	}
 
+	private handleCardAssigneeChange(payload: RealtimePostgresChangesPayload<{
+		[key: string]: unknown;
+	}>): void {
+		console.log('Card assignee change:', payload);
+		const newData = payload.new as RealtimePayload<Database['public']['Tables']['card_assignees']['Row']>;
+		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['card_assignees']['Row']>;
+		
+		if (this.currentBoard?.columns) {
+			if (payload.eventType === 'INSERT' && newData) {
+				// Add new assignee
+				for (const column of this.currentBoard.columns) {
+					if (column.cards) {
+						const card = column.cards.find((c) => c.id === newData.card_id);
+						if (card) {
+							// Fetch user details for the new assignee
+							supabase
+								.from('users')
+								.select('id, email')
+								.eq('id', newData.user_id)
+								.single()
+								.then(({ data: user }) => {
+									if (user && card.assignees) {
+										// Check if assignee already exists (from optimistic update)
+										const existingAssignee = card.assignees.find((a) => a.id === user.id);
+										if (!existingAssignee) {
+											if (!card.assignees) card.assignees = [];
+									card.assignees.push({
+												id: user.id,
+												email: user.email,
+												username: user.email?.split('@')[0],
+												full_name: undefined,
+												avatar_url: undefined
+											});
+										}
+									}
+								});
+							break;
+						}
+					}
+				}
+			} else if (payload.eventType === 'DELETE' && oldData) {
+				// Remove deleted assignee
+				for (const column of this.currentBoard.columns) {
+					if (column.cards) {
+						const card = column.cards.find((c) => c.id === oldData.card_id);
+						if (card && card.assignees) {
+							card.assignees = card.assignees.filter((a) => a.id !== oldData.user_id);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private handleActivityChange(payload: RealtimePostgresChangesPayload<{
 		[key: string]: unknown;
 	}>): void {
@@ -1159,7 +1243,69 @@ class KanbanStore {
 		);
 	}
 
-	// Cleanup
+	async updateCardAssignees(cardId: string, userId: string, isAssigning: boolean) {
+		if (!this.currentBoard) return;
+
+		const originalBoard = deepCopyBoardState(this.currentBoard);
+
+		return this.withOptimisticUpdate(
+			// Optimistic update - update card assignees immediately
+			async () => {
+				if (!this.currentBoard?.columns) return;
+
+				for (const column of this.currentBoard.columns) {
+					if (column.cards) {
+						const card = column.cards.find((c) => c.id === cardId);
+						if (card) {
+							if (isAssigning) {
+								// Add assignee
+								if (!card.assignees) card.assignees = [];
+								card.assignees.push({
+									id: userId,	
+									email: undefined,
+									username: undefined,
+									full_name: undefined,
+									avatar_url: undefined
+								});
+							} else {
+								// Remove assignee
+								if (card.assignees) {
+									card.assignees = card.assignees.filter((a) => a.id !== userId);
+								}
+							}
+							break;
+						}
+					}
+				}
+			},	
+
+			// Rollback function
+			() => {
+				this.currentBoard = originalBoard;
+			},
+
+			// Actual database operation
+			async () => {
+				if (isAssigning) {
+					const { error } = await supabase.from('card_assignees').insert({
+						card_id: cardId,
+						user_id: userId
+					});
+					if (error) throw error;
+				} else {
+					const { error } = await supabase
+						.from('card_assignees')
+						.delete()
+						.eq('card_id', cardId)
+						.eq('user_id', userId);
+					if (error) throw error;
+				}
+
+				return true;
+			}
+		);
+	}
+		// Cleanup
 	cleanup() {
 		if (this.boardChannel) {
 			this.subscriptionManager.removeSubscription(this.boardChannel);

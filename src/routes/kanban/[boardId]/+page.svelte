@@ -1,19 +1,12 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import KanbanBoard from '$lib/components/kanban/KanbanBoard.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { kanbanStore } from '$lib/stores/kanban.svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 
-	const boardId = $derived($page.params.boardId);
 	const state = $derived(kanbanStore.state);
 	const user = $derived(authStore.user);
-
-	onMount(() => {
-		if (user && boardId) {
-			kanbanStore.loadBoard(boardId);
-		}
-	});
+	
 
 	onDestroy(() => {
 		kanbanStore.cleanup();

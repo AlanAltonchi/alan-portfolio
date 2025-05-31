@@ -35,6 +35,13 @@ export interface Card extends DbCard {
 		assigned_at: string;
 		card_labels?: CardLabel;
 	}>;
+	card_assignees?: Array<{
+		user_id: string;
+		users?: {
+			id: string;
+			email: string;
+		};
+	}>;
 	column?: {
 		id: string;
 		title: string;
