@@ -5,6 +5,7 @@
 	interface Props {
 		isOpen: boolean;
 		onClose: () => void;
+		onOpen?: () => void;
 		title?: string;
 		size?: 'sm' | 'md' | 'lg' | 'xl';
 		closable?: boolean;
@@ -17,8 +18,18 @@
 		size = 'md',
 		closable = true,
 		onClose,
+		onOpen,
 		children
 	}: Props = $props();
+
+	let previousIsOpen = $state(false);
+
+	$effect(() => {
+		if (isOpen && !previousIsOpen) {
+			onOpen?.();
+		}
+		previousIsOpen = isOpen;
+	});
 
 	const sizeClasses = {
 		sm: 'max-w-md',

@@ -7,6 +7,7 @@
 
 	let { form } = $props();
 
+	let name = $state('');
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
@@ -57,6 +58,7 @@
 			success = '';
 
 			const result = await authService.signUp({
+				name,
 				email,
 				password,
 				confirmPassword
@@ -119,11 +121,13 @@
 				</div>
 			{:else}
 				<AuthForm
+					bind:name
 					bind:email
 					bind:password
 					bind:confirmPassword
 					{loading}
 					{error}
+					showName={true}
 					showConfirmPassword={true}
 					submitText="Create account"
 					loadingText="Creating account..."

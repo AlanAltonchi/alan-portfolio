@@ -12,6 +12,7 @@ export interface AuthFormData {
 	email: string;
 	password: string;
 	confirmPassword?: string;
+	name?: string;
 }
 
 export interface AuthState {

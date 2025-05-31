@@ -20,7 +20,12 @@ export class AuthService {
 
 			const { data, error } = await this.supabase.auth.signUp({
 				email: formData.email,
-				password: formData.password
+				password: formData.password,
+				options: {
+					data: {
+						name: formData.name
+					}
+				}
 			});
 
 			if (error) {

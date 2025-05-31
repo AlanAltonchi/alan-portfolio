@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Button, Input, Modal } from '$lib/components';
+	import { Button, Input } from '$lib/components';
+	import Modal from './Modal.svelte';
 	import { supabase } from '$lib/db.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { profileStore } from '$lib/stores/profile.svelte';
@@ -26,30 +27,17 @@
 	const avatarManager = createAvatarManager();
 	const interestsManager = createInterestsManager();
 
-	// Initialize form data when profile loads or modal opens
-	$effect(() => {
+	// Initialize form when modal opens
+	function initializeForm() {
 		const profile = profileStore.currentProfile;
 		if (profile) {
-			// Only update form data if it's different
-			if (formData.name !== (profile.name || '')) {
-				formData.name = profile.name || '';
-			}
-			if (formData.bio !== (profile.bio || '')) {
-				formData.bio = profile.bio || '';
-			}
-
-			const profileInterests = profile.interests || [];
-			if (JSON.stringify(formData.interests) !== JSON.stringify(profileInterests)) {
-				formData.interests = profileInterests;
-				interestsManager.setInterests(profileInterests);
-			}
-
-			// Load avatar when modal opens or when profile changes
-			if (open) {
-				avatarManager.loadCurrentAvatar(supabase, profile.avatar_url);
-			}
+			formData.name = profile.name || '';
+			formData.bio = profile.bio || '';
+			formData.interests = profile.interests || [];
+			interestsManager.setInterests(formData.interests);
+			avatarManager.loadCurrentAvatar(supabase, profile.avatar_url);
 		}
-	});
+	}
 
 	async function handleAvatarChange(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -108,6 +96,19 @@
 				interests: formData.interests.length > 0 ? formData.interests : null
 			});
 
+			// Update user metadata name for welcome message
+			if (formData.name && formData.name !== authStore.user?.user_metadata?.name) {
+				const { error } = await supabase.auth.updateUser({
+					data: {
+						name: formData.name
+					}
+				});
+				
+				if (error) {
+					console.error('Error updating user metadata:', error);
+				}
+			}
+
 			if (!profileStore.error) {
 				open = false;
 				avatarManager.clearAvatar();
@@ -135,7 +136,7 @@
 	}
 </script>
 
-<Modal title="Edit Profile" isOpen={open} onClose={handleClose}>
+<Modal title="Edit Profile" isOpen={open} onClose={handleClose} onOpen={initializeForm}>
 	<div class="mx-auto w-full max-w-2xl">
 		{#if profileStore.error}
 			<div
