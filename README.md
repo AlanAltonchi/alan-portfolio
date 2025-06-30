@@ -117,7 +117,7 @@ type User = Tables<'profiles'>;
 Feel free to reach out if you have any questions or would like to discuss opportunities!
 
 - **Live Demo**: [https://alan-portfolio-beta.vercel.app/](https://alan-portfolio-beta.vercel.app/)
-- **GitHub**: [Your GitHub Profile](https://github.com/AlanAltonchi)
-- **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/alan-altonchi)
+- **GitHub**: [Alan Altonchi](https://github.com/AlanAltonchi)
+- **LinkedIn**: [Alan Altonchi](https://linkedin.com/in/alan-altonchi)
 
 ---
