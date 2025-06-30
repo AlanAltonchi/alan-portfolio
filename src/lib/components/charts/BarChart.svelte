@@ -19,10 +19,14 @@
 
 	$effect(() => {
 		if (animated) {
+			// Reset animation progress when data changes
+			animationProgress = 0;
 			const timer = setTimeout(() => {
 				animationProgress = 1;
 			}, 100);
-			return () => clearTimeout(timer);
+			return () => {
+				clearTimeout(timer);
+			};
 		}
 	});
 

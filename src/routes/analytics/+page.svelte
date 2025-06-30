@@ -25,18 +25,31 @@
 	// let { data } = $props(); // Unused
 
 	// Redirect to login if not authenticated
+	let loadTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	onMount(() => {
 		if (!authStore.isAuthenticated) {
 			goto('/auth/login');
 			return;
 		}
-		// Load analytics data
+		// Load analytics data immediately without delay for faster perceived performance
+		// The parallel fetching in the store will handle performance
 		analyticsStore.loadAnalytics().then(() => {
 			// If no data exists, generate mock data
+			// This also runs non-blocking
 			if (analyticsStore.overview.length === 0) {
 				analyticsStore.generateMockData();
 			}
-		});
+		}).catch(console.error);
+
+		return () => {
+			// Clean up timeout on unmount
+			if (loadTimeout) {
+				clearTimeout(loadTimeout);
+			}
+			// Reset analytics store to prevent data accumulation
+			analyticsStore.reset();
+		};
 	});
 
 	// Prepare data for charts
@@ -80,11 +93,7 @@
 			}))
 	);
 
-	// Stats cards animation
-	let statsVisible = $state(false);
-	onMount(() => {
-		setTimeout(() => (statsVisible = true), 100);
-	});
+	// Stats cards animation - use CSS animation-delay instead of JS timers
 </script>
 
 <svelte:head>
@@ -112,19 +121,42 @@
 			</header>
 
 			{#if analyticsStore.loading}
-				<div class="flex items-center justify-center py-32">
-					<div class="text-center">
-						<div class="relative">
-							<div
-								class="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"
-							></div>
-							<div
-								class="absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"
-								style="animation-direction: reverse; animation-duration: 1.5s;"
-							></div>
+				<!-- Skeleton loaders for better perceived performance -->
+				<!-- Stats Cards Skeleton -->
+				<div class="mb-12 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+					{#each Array(4) as _, i (i)}
+						<div
+							class="animate-pulse rounded-3xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+						>
+							<div class="mb-6 flex items-center justify-between">
+								<div class="h-12 w-12 rounded-2xl bg-slate-200 dark:bg-slate-700"></div>
+								<div class="h-6 w-20 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+							</div>
+							<div class="mb-3 h-4 w-32 rounded bg-slate-200 dark:bg-slate-700"></div>
+							<div class="mb-4 h-10 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
+							<div class="flex items-center gap-2">
+								<div class="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+								<div class="h-4 w-20 rounded bg-slate-200 dark:bg-slate-700"></div>
+							</div>
 						</div>
-						<p class="text-lg text-slate-600 dark:text-slate-400">Loading analytics data...</p>
+					{/each}
+				</div>
+
+				<!-- Main Chart Skeleton -->
+				<div
+					class="mb-12 animate-pulse rounded-3xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-800"
+				>
+					<div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+						<div>
+							<div class="mb-2 h-8 w-48 rounded bg-slate-200 dark:bg-slate-700"></div>
+							<div class="h-5 w-64 rounded bg-slate-200 dark:bg-slate-700"></div>
+						</div>
+						<div class="flex items-center gap-6">
+							<div class="h-6 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
+							<div class="h-6 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
+						</div>
 					</div>
+					<div class="h-[350px] rounded-2xl bg-slate-50 dark:bg-slate-700/50"></div>
 				</div>
 			{:else if analyticsStore.error}
 				<div class="py-32 text-center">
@@ -145,10 +177,8 @@
 				<div class="mb-12 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
 					<!-- Total Page Views Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
-						class:opacity-0={!statsVisible}
-						class:translate-y-8={!statsVisible}
-						style="transition-delay: 0ms"
+						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						style="animation-delay: 0ms"
 					>
 						<div
 							class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 transition-all duration-500 group-hover:from-blue-500/10 group-hover:to-blue-600/20"
@@ -186,10 +216,8 @@
 
 					<!-- Unique Visitors Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
-						class:opacity-0={!statsVisible}
-						class:translate-y-8={!statsVisible}
-						style="transition-delay: 100ms"
+						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						style="animation-delay: 100ms"
 					>
 						<div
 							class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-green-600/10 transition-all duration-500 group-hover:from-green-500/10 group-hover:to-green-600/20"
@@ -227,10 +255,8 @@
 
 					<!-- Session Duration Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
-						class:opacity-0={!statsVisible}
-						class:translate-y-8={!statsVisible}
-						style="transition-delay: 200ms"
+						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						style="animation-delay: 200ms"
 					>
 						<div
 							class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-purple-600/10 transition-all duration-500 group-hover:from-purple-500/10 group-hover:to-purple-600/20"
@@ -274,10 +300,8 @@
 
 					<!-- Bounce Rate Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
-						class:opacity-0={!statsVisible}
-						class:translate-y-8={!statsVisible}
-						style="transition-delay: 300ms"
+						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						style="animation-delay: 300ms"
 					>
 						<div
 							class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-orange-600/10 transition-all duration-500 group-hover:from-orange-500/10 group-hover:to-orange-600/20"

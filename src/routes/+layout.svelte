@@ -4,6 +4,7 @@
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { handleUserOnMount, handleAuthStateChange } from '$lib/utils';
 	import { getSubscriptionManager } from '$lib/utils/subscription-manager';
+	import { setupNavigationPreloading } from '$lib/utils/preload';
 	import '../app.css';
 
 	let { data, children } = $props();
@@ -27,10 +28,18 @@
 		// Initialize subscription manager
 		getSubscriptionManager(supabase);
 
+		// Set up navigation preloading
+		const cleanupPreloading = setupNavigationPreloading();
+
 		// Set up auth state change listener
 		authSubscription = supabase.auth.onAuthStateChange(async (event, newSession) => {
 			await handleAuthStateChange(supabase, event, newSession, session);
 		});
+
+		// Return cleanup function
+		return () => {
+			if (cleanupPreloading) cleanupPreloading();
+		};
 	});
 
 	onDestroy(() => {

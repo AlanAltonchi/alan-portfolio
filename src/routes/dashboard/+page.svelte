@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { Button, Card } from '$lib/components';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { preloadRoute } from '$lib/utils/preload';
 	import { onMount } from 'svelte';
 
 	// let { data } = $props(); // Unused
@@ -29,7 +30,14 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					Manage your account settings and preferences.
 				</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/profile')}>Edit Profile</Button>
+				<Button 
+					variant="outline" 
+					size="sm" 
+					onclick={() => goto('/profile')}
+					onmouseenter={() => preloadRoute('/profile')}
+				>
+					Edit Profile
+				</Button>
 			</Card>
 
 			<Card variant="outlined">
@@ -37,13 +45,27 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					Start simulated conversations with markdown, images, and real-time read receipts.
 				</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/chat')}>Open Chat</Button>
+				<Button 
+					variant="outline" 
+					size="sm" 
+					onclick={() => goto('/chat')}
+					onmouseenter={() => preloadRoute('/chat')}
+				>
+					Open Chat
+				</Button>
 			</Card>
 
 			<Card variant="outlined">
 				<h3 class="mb-2 text-lg font-semibold">Tasks</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Manage your tasks and projects.</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/kanban')}>View Tasks</Button>
+				<Button 
+					variant="outline" 
+					size="sm" 
+					onclick={() => goto('/kanban')}
+					onmouseenter={() => preloadRoute('/kanban')}
+				>
+					View Tasks
+				</Button>
 			</Card>
 
 			<Card variant="outlined">
@@ -57,15 +79,27 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					View your activity and usage statistics.
 				</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/analytics')}
-					>View Analytics</Button
+				<Button 
+					variant="outline" 
+					size="sm" 
+					onclick={() => goto('/analytics')}
+					onmouseenter={() => preloadRoute('/analytics')}
 				>
+					View Analytics
+				</Button>
 			</Card>
 
 			<Card variant="outlined">
 				<h3 class="mb-2 text-lg font-semibold">User Profiles</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Discover and connect with other users.</p>
-				<Button variant="outline" size="sm" onclick={() => goto('/profiles')}>View Profiles</Button>
+				<Button 
+					variant="outline" 
+					size="sm" 
+					onclick={() => goto('/profiles')}
+					onmouseenter={() => preloadRoute('/profiles')}
+				>
+					View Profiles
+				</Button>
 			</Card>
 		</div>
 

@@ -10,14 +10,30 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		'analytics_user_activity'
 	];
 
-	try {
-		// Fetch RLS rules for relevant tables
-		const rlsResponse = await fetch(`/api/dev/rls-rules?tables=${relevantTables.join(',')}`);
-		const rlsRules = rlsResponse.ok ? await rlsResponse.text() : null;
+	// Only load dev data in development environment
+	const isDev = process.env.NODE_ENV === 'development';
+	
+	if (!isDev) {
+		return {
+			devData: {
+				relevantTables,
+				rlsRules: null,
+				schemaInfo: null
+			}
+		};
+	}
 
-		// Fetch schema for relevant tables
-		const schemaResponse = await fetch(`/api/dev/schema?tables=${relevantTables.join(',')}`);
-		const schemaInfo = schemaResponse.ok ? await schemaResponse.text() : null;
+	try {
+		// Fetch RLS rules and schema in parallel for better performance
+		const [rlsResponse, schemaResponse] = await Promise.all([
+			fetch(`/api/dev/rls-rules?tables=${relevantTables.join(',')}`),
+			fetch(`/api/dev/schema?tables=${relevantTables.join(',')}`)
+		]);
+
+		const [rlsRules, schemaInfo] = await Promise.all([
+			rlsResponse.ok ? rlsResponse.text() : null,
+			schemaResponse.ok ? schemaResponse.text() : null
+		]);
 
 		return {
 			devData: {

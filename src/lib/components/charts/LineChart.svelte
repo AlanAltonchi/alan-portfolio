@@ -18,12 +18,15 @@
 	let svgElement = $state<SVGElement | null>(null);
 
 	$effect(() => {
-		if (svgElement) {
+		if (svgElement && svgElement.parentElement) {
+			const parent = svgElement.parentElement;
 			const resizeObserver = new ResizeObserver((entries) => {
 				width = entries[0].contentRect.width;
 			});
-			resizeObserver.observe(svgElement.parentElement!);
-			return () => resizeObserver.disconnect();
+			resizeObserver.observe(parent);
+			return () => {
+				resizeObserver.disconnect();
+			};
 		}
 	});
 

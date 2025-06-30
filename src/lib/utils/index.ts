@@ -11,3 +11,6 @@ export * from './profile.svelte';
 
 // Developer utilities
 export * from './developer-drawer.svelte';
+
+// Navigation utilities
+export * from './preload';
