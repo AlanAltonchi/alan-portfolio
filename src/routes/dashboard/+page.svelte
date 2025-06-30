@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import { Card, Button } from '$lib/components';
+	import { Button, Card } from '$lib/components';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { onMount } from 'svelte';
 
 	// let { data } = $props(); // Unused
 
@@ -47,7 +47,7 @@
 			</Card>
 
 			<Card variant="outlined">
-				<h3 class="mb-2 text-lg font-semibold">Inbox</h3>
+				<h3 class="mb-2 text-lg font-semibold">Inbox (Coming Soon)</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Check your messages and notifications.</p>
 				<Button variant="outline" size="sm">Open Inbox</Button>
 			</Card>
