@@ -172,7 +172,7 @@ class KanbanStore {
 								id: column.id,
 								title: column.title
 							};
-							
+
 							// Transform card_assignees to assignees array
 							if (card.card_assignees) {
 								card.assignees = card.card_assignees
@@ -897,13 +897,15 @@ class KanbanStore {
 		this.subscriptionManager.addSubscription(this.boardChannel);
 	}
 
-	private handleBoardChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleBoardChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('Board change:', payload);
 		const newData = payload.new as RealtimePayload<Database['public']['Tables']['boards']['Row']>;
 		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['boards']['Row']>;
-		
+
 		if (this.currentBoard?.id === newData?.id || this.currentBoard?.id === oldData?.id) {
 			// Update board properties optimistically if it's just a title/description change
 			if (payload.eventType === 'UPDATE' && newData && this.currentBoard) {
@@ -913,13 +915,15 @@ class KanbanStore {
 		}
 	}
 
-	private handleColumnChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleColumnChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('Column change:', payload);
 		const newData = payload.new as RealtimePayload<Database['public']['Tables']['columns']['Row']>;
 		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['columns']['Row']>;
-		
+
 		if (this.currentBoard?.columns) {
 			if (payload.eventType === 'UPDATE' && newData) {
 				// Update column properties optimistically
@@ -942,20 +946,20 @@ class KanbanStore {
 				}
 			} else if (payload.eventType === 'DELETE' && oldData) {
 				// Remove deleted column
-				this.currentBoard.columns = this.currentBoard.columns.filter(
-					(c) => c.id !== oldData.id
-				);
+				this.currentBoard.columns = this.currentBoard.columns.filter((c) => c.id !== oldData.id);
 			}
 		}
 	}
 
-	private handleCardChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleCardChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('Card change:', payload);
 		const newData = payload.new as RealtimePayload<Database['public']['Tables']['cards']['Row']>;
 		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['cards']['Row']>;
-		
+
 		if (this.currentBoard?.columns) {
 			if (payload.eventType === 'UPDATE' && newData) {
 				// Update card properties optimistically
@@ -998,13 +1002,19 @@ class KanbanStore {
 		}
 	}
 
-	private handleCardLabelAssignmentChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleCardLabelAssignmentChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('Card label assignment change:', payload);
-		const newData = payload.new as RealtimePayload<Database['public']['Tables']['card_label_assignments']['Row']>;
-		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['card_label_assignments']['Row']>;
-		
+		const newData = payload.new as RealtimePayload<
+			Database['public']['Tables']['card_label_assignments']['Row']
+		>;
+		const oldData = payload.old as RealtimePayload<
+			Database['public']['Tables']['card_label_assignments']['Row']
+		>;
+
 		if (this.currentBoard?.columns) {
 			if (payload.eventType === 'INSERT' && newData) {
 				// Add new label assignment
@@ -1052,7 +1062,8 @@ class KanbanStore {
 								} as CardLabelAssignment);
 							} else if (existingAssignment) {
 								// Update existing assignment with real data
-								existingAssignment.assigned_at = newData.assigned_at || existingAssignment.assigned_at;
+								existingAssignment.assigned_at =
+									newData.assigned_at || existingAssignment.assigned_at;
 							}
 							break;
 						}
@@ -1090,13 +1101,19 @@ class KanbanStore {
 		}
 	}
 
-	private handleCardAssigneeChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleCardAssigneeChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('Card assignee change:', payload);
-		const newData = payload.new as RealtimePayload<Database['public']['Tables']['card_assignees']['Row']>;
-		const oldData = payload.old as RealtimePayload<Database['public']['Tables']['card_assignees']['Row']>;
-		
+		const newData = payload.new as RealtimePayload<
+			Database['public']['Tables']['card_assignees']['Row']
+		>;
+		const oldData = payload.old as RealtimePayload<
+			Database['public']['Tables']['card_assignees']['Row']
+		>;
+
 		if (this.currentBoard?.columns) {
 			if (payload.eventType === 'INSERT' && newData) {
 				// Add new assignee
@@ -1116,7 +1133,7 @@ class KanbanStore {
 										const existingAssignee = card.assignees.find((a) => a.id === user.id);
 										if (!existingAssignee) {
 											if (!card.assignees) card.assignees = [];
-									card.assignees.push({
+											card.assignees.push({
 												id: user.id,
 												email: user.email,
 												username: user.email?.split('@')[0],
@@ -1144,9 +1161,11 @@ class KanbanStore {
 		}
 	}
 
-	private handleActivityChange(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleActivityChange(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		console.log('New activity:', payload);
 		// Activity changes can trigger UI notifications or activity feed updates
 		// This will be handled by the ActivityFeed component
@@ -1261,7 +1280,7 @@ class KanbanStore {
 								// Add assignee
 								if (!card.assignees) card.assignees = [];
 								card.assignees.push({
-									id: userId,	
+									id: userId,
 									email: undefined,
 									username: undefined,
 									full_name: undefined,
@@ -1277,7 +1296,7 @@ class KanbanStore {
 						}
 					}
 				}
-			},	
+			},
 
 			// Rollback function
 			() => {
@@ -1305,7 +1324,7 @@ class KanbanStore {
 			}
 		);
 	}
-		// Cleanup
+	// Cleanup
 	cleanup() {
 		if (this.boardChannel) {
 			this.subscriptionManager.removeSubscription(this.boardChannel);

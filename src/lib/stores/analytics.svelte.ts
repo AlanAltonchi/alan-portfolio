@@ -32,7 +32,7 @@ class AnalyticsStore {
 			end: new Date()
 		}
 	});
-	
+
 	private abortController: AbortController | null = null;
 	private cache = new Map<string, { data: AnalyticsState; timestamp: number }>();
 	private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -111,17 +111,17 @@ class AnalyticsStore {
 	async loadAnalytics() {
 		// Cancel any previous loading operation
 		this.cancelLoading();
-		
+
 		// Check cache first
 		const cacheKey = `${this.state.dateRange.start.toISOString()}-${this.state.dateRange.end.toISOString()}`;
 		const cached = this.cache.get(cacheKey);
-		
+
 		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
 			// Use cached data
 			Object.assign(this.state, cached.data);
 			return;
 		}
-		
+
 		this.state.loading = true;
 		this.state.error = null;
 		this.abortController = new AbortController();
@@ -147,7 +147,7 @@ class AnalyticsStore {
 					.lte('metric_date', endDate)
 					.order('metric_date', { ascending: false })
 					.abortSignal(this.abortController.signal),
-				
+
 				// Traffic sources (latest date only)
 				supabase
 					.from('analytics_traffic_sources')
@@ -155,7 +155,7 @@ class AnalyticsStore {
 					.eq('metric_date', endDate)
 					.order('visits', { ascending: false })
 					.abortSignal(this.abortController.signal),
-				
+
 				// Device stats (latest date only)
 				supabase
 					.from('analytics_device_stats')
@@ -163,7 +163,7 @@ class AnalyticsStore {
 					.eq('metric_date', endDate)
 					.order('count', { ascending: false })
 					.abortSignal(this.abortController.signal),
-				
+
 				// Page performance (latest date only)
 				supabase
 					.from('analytics_page_performance')
@@ -171,7 +171,7 @@ class AnalyticsStore {
 					.eq('metric_date', endDate)
 					.order('views', { ascending: false })
 					.abortSignal(this.abortController.signal),
-				
+
 				// User activity (latest date only)
 				supabase
 					.from('analytics_user_activity')
@@ -229,7 +229,7 @@ class AnalyticsStore {
 			try {
 				const { error } = await supabase.rpc('generate_mock_analytics_data');
 				if (error) throw error;
-				
+
 				// Only reload if we're still on the page
 				if (!this.abortController?.signal.aborted) {
 					await this.loadAnalytics();
@@ -237,7 +237,8 @@ class AnalyticsStore {
 			} catch (error) {
 				if (!this.abortController?.signal.aborted) {
 					console.error('Error generating mock data:', error);
-					this.state.error = error instanceof Error ? error.message : 'Failed to generate mock data';
+					this.state.error =
+						error instanceof Error ? error.message : 'Failed to generate mock data';
 				}
 			}
 		};
@@ -264,10 +265,10 @@ class AnalyticsStore {
 	reset() {
 		// Cancel any ongoing operations
 		this.cancelLoading();
-		
+
 		// Clear cache
 		this.cache.clear();
-		
+
 		this.state = {
 			overview: [],
 			trafficSources: [],

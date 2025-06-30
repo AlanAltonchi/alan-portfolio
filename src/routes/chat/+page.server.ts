@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ locals: { supabase, safeGetSession 
 			.neq('id', user.id)
 			.order('created_at', { ascending: false })
 			.limit(50),
-		
+
 		// Fetch existing conversations with limit
 		supabase
 			.from('conversations')

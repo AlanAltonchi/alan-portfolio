@@ -38,7 +38,10 @@ export async function handleInvalidSession(supabase: SupabaseClient): Promise<vo
 /**
  * Loads user profile data
  */
-export async function loadUserProfile(supabase: SupabaseClient, userId: string): Promise<Tables<'profiles'> | null> {
+export async function loadUserProfile(
+	supabase: SupabaseClient,
+	userId: string
+): Promise<Tables<'profiles'> | null> {
 	try {
 		const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 

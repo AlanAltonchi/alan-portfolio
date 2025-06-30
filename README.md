@@ -7,6 +7,7 @@ A modern, feature-rich portfolio application demonstrating advanced full-stack d
 ## Key Features
 
 ### **Authentication & Security**
+
 - Complete authentication system with secure session management
 - **Instant demo access** for recruiters - no registration required
 - Advanced Row Level Security (RLS) for multi-tenant data isolation
@@ -14,6 +15,7 @@ A modern, feature-rich portfolio application demonstrating advanced full-stack d
 - Auto-cleanup system for demo accounts
 
 ### **Real-time Chat System**
+
 - Live messaging with WebSocket connections
 - Typing indicators and read receipts
 - File sharing with secure signed URLs
@@ -21,6 +23,7 @@ A modern, feature-rich portfolio application demonstrating advanced full-stack d
 - Optimistic UI updates for instant feedback
 
 ### **Kanban Task Management**
+
 - Drag-and-drop functionality with smooth animations
 - Real-time collaborative features
 - Card assignments, labels, and activity tracking
@@ -28,18 +31,22 @@ A modern, feature-rich portfolio application demonstrating advanced full-stack d
 - Board-level permissions and access control
 
 ### **Analytics Dashboard**
+
 - Interactive data visualizations
 - Multiple chart types: Line, Bar, Donut, HeatMap
 - Traffic analysis and device statistics
 - Performance metrics and user activity tracking
 
 ### **Profile Management**
+
 - User profiles with avatar upload
 - Image compression and optimization
 - CRUD operations with real-time updates
 
 ### **Developer Drawer** (Unique Feature!)
+
 A standout feature that provides live code inspection:
+
 - View the actual source code of any page
 - Inspect database schemas and RLS policies
 - Syntax highlighting and code formatting
@@ -49,6 +56,7 @@ A standout feature that provides live code inspection:
 ## Tech Stack
 
 ### Frontend
+
 - **[Svelte 5](https://svelte.dev/)** - Latest version with runes syntax
 - **[SvelteKit](https://kit.svelte.dev/)** - Full-stack framework with SSR
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
@@ -56,6 +64,7 @@ A standout feature that provides live code inspection:
 - **[Lucide Icons](https://lucide.dev/)** - Modern icon library
 
 ### Backend & Infrastructure
+
 - **[Supabase](https://supabase.com/)** - Backend-as-a-Service
   - PostgreSQL database
   - Real-time subscriptions
@@ -65,6 +74,7 @@ A standout feature that provides live code inspection:
 - **[Vercel](https://vercel.com/)** - Deployment and hosting
 
 ### Development Tools
+
 - **ESLint & Prettier** - Code quality and formatting
 - **Vite** - Fast build tooling
 - **Zod** - Schema validation
@@ -91,23 +101,29 @@ A standout feature that provides live code inspection:
 ## Architecture Highlights
 
 ### State Management
+
 Uses Svelte 5's new runes pattern:
+
 ```typescript
 let count = $state(0);
 let doubled = $derived(count * 2);
 ```
 
 ### Real-time Subscriptions
+
 Managed subscriptions with automatic cleanup:
+
 ```typescript
 const subscription = supabase
-  .channel('room')
-  .on('broadcast', { event: 'message' }, handler)
-  .subscribe();
+	.channel('room')
+	.on('broadcast', { event: 'message' }, handler)
+	.subscribe();
 ```
 
 ### Type Safety
+
 Complete TypeScript coverage with generated database types:
+
 ```typescript
 type User = Tables<'profiles'>;
 ```

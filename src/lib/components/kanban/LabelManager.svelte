@@ -225,12 +225,16 @@
 					{:else}
 						<div class="max-h-64 overflow-y-auto">
 							{#each labels as label (label.id)}
-								<div class="group flex w-full items-center gap-2 rounded p-1 select-none hover:bg-gray-100 dark:hover:bg-gray-700">
+								<div
+									class="group flex w-full items-center gap-2 rounded p-1 select-none hover:bg-gray-100 dark:hover:bg-gray-700"
+								>
 									<button
 										class="flex flex-1 items-center gap-2 text-left"
 										onclick={() => toggleLabel(label.id)}
 										onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleLabel(label.id)}
-										aria-label="{assignedLabelIds().has(label.id) ? 'Remove' : 'Add'} label {label.name}"
+										aria-label="{assignedLabelIds().has(label.id)
+											? 'Remove'
+											: 'Add'} label {label.name}"
 										type="button"
 									>
 										<span
@@ -289,8 +293,8 @@
 
 <!-- Click outside to close -->
 {#if showDropdown}
-	<div 
-		class="fixed inset-0 z-[10000]" 
+	<div
+		class="fixed inset-0 z-[10000]"
 		onclick={() => (showDropdown = false)}
 		onkeydown={(e) => e.key === 'Escape' && (showDropdown = false)}
 		role="button"

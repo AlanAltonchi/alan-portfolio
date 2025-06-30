@@ -65,7 +65,6 @@
 		if (!authStore.user) return;
 		loadMembers();
 		await kanbanStore.updateCardAssignees(cardId, userId, !assignedUserIds.has(userId));
-		
 	}
 
 	async function inviteMember() {

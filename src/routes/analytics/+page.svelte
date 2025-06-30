@@ -34,13 +34,16 @@
 		}
 		// Load analytics data immediately without delay for faster perceived performance
 		// The parallel fetching in the store will handle performance
-		analyticsStore.loadAnalytics().then(() => {
-			// If no data exists, generate mock data
-			// This also runs non-blocking
-			if (analyticsStore.overview.length === 0) {
-				analyticsStore.generateMockData();
-			}
-		}).catch(console.error);
+		analyticsStore
+			.loadAnalytics()
+			.then(() => {
+				// If no data exists, generate mock data
+				// This also runs non-blocking
+				if (analyticsStore.overview.length === 0) {
+					analyticsStore.generateMockData();
+				}
+			})
+			.catch(console.error);
 
 		return () => {
 			// Clean up timeout on unmount
@@ -177,7 +180,7 @@
 				<div class="mb-12 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
 					<!-- Total Page Views Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						class="group animate-in fade-in slide-in-from-bottom-2 relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
 						style="animation-delay: 0ms"
 					>
 						<div
@@ -216,7 +219,7 @@
 
 					<!-- Unique Visitors Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						class="group animate-in fade-in slide-in-from-bottom-2 relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
 						style="animation-delay: 100ms"
 					>
 						<div
@@ -255,7 +258,7 @@
 
 					<!-- Session Duration Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						class="group animate-in fade-in slide-in-from-bottom-2 relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
 						style="animation-delay: 200ms"
 					>
 						<div
@@ -300,7 +303,7 @@
 
 					<!-- Bounce Rate Card -->
 					<div
-						class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 animate-in fade-in slide-in-from-bottom-2"
+						class="group animate-in fade-in slide-in-from-bottom-2 relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800"
 						style="animation-delay: 300ms"
 					>
 						<div

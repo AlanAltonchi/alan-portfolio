@@ -140,7 +140,7 @@
 	onclick={handleCardClick}
 	onkeydown={handleKeydown}
 	data-card-id={card.id}
-	class="group relative cursor-pointer overflow-hidden rounded-xl {priorityStyles.border} {priorityStyles.bg} p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl {priorityStyles.glow} backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+	class="group relative cursor-pointer overflow-hidden rounded-xl {priorityStyles.border} {priorityStyles.bg} p-5 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-2xl {priorityStyles.glow} backdrop-blur-sm focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
 	class:opacity-50={dragging}
 	class:shadow-2xl={dragging}
 	class:scale-110={dragging}
@@ -151,7 +151,7 @@
 	<div class="card-content">
 		<!-- Card title -->
 		<h4
-			class="mb-3 text-lg leading-tight font-bold text-gray-900 transition-colors duration-200 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text dark:text-white"
+			class="mb-3 text-lg leading-tight font-bold text-gray-900 transition-colors duration-200 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent dark:text-white"
 		>
 			{card.title}
 		</h4>
@@ -161,7 +161,11 @@
 			<!-- Due date -->
 			{#if dueDate}
 				<span
-					class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-all duration-200 hover:scale-105 {dueDate.isOverdue ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg' : dueDate.isToday ? 'bg-gradient-to-r from-orange-400 to-amber-400 text-orange-700 dark:text-orange-300' : 'bg-gray-200/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300'}"
+					class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur-sm transition-all duration-200 hover:scale-105 {dueDate.isOverdue
+						? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
+						: dueDate.isToday
+							? 'bg-gradient-to-r from-orange-400 to-amber-400 text-orange-700 dark:text-orange-300'
+							: 'bg-gray-200/80 text-gray-600 dark:bg-gray-700/80 dark:text-gray-300'}"
 				>
 					<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -247,7 +251,8 @@
 					{#if assignment.card_labels}
 						<span
 							class="rounded-full px-3 py-1 text-xs font-bold text-white shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
-							style="background: linear-gradient(135deg, {assignment.card_labels.color}, {assignment.card_labels.color}dd)"
+							style="background: linear-gradient(135deg, {assignment.card_labels.color}, {assignment
+								.card_labels.color}dd)"
 						>
 							{assignment.card_labels.name}
 						</span>
@@ -258,5 +263,7 @@
 	</div>
 
 	<!-- Hover gradient overlay -->
-	<div class="absolute inset-0 -z-10 bg-gradient-to-t from-transparent via-transparent to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+	<div
+		class="absolute inset-0 -z-10 bg-gradient-to-t from-transparent via-transparent to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+	></div>
 </div>

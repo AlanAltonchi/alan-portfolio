@@ -1,4 +1,8 @@
-import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type {
+	SupabaseClient,
+	RealtimeChannel,
+	RealtimePostgresChangesPayload
+} from '@supabase/supabase-js';
 import type { Message, ConversationWithUsers } from '$lib/types';
 
 export interface SimulatorPosition {

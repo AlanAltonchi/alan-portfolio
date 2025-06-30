@@ -60,7 +60,7 @@ export function setupNavigationPreloading() {
  */
 export async function preloadRoute(path: string) {
 	if (!browser) return;
-	
+
 	try {
 		await preloadData(path);
 	} catch (error) {

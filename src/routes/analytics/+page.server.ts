@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 
 	// Only load dev data in development environment
 	const isDev = process.env.NODE_ENV === 'development';
-	
+
 	if (!isDev) {
 		return {
 			devData: {

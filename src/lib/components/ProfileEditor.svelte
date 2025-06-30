@@ -103,7 +103,7 @@
 						name: formData.name
 					}
 				});
-				
+
 				if (error) {
 					console.error('Error updating user metadata:', error);
 				}

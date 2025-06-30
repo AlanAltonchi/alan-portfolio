@@ -43,12 +43,20 @@
 					updateActiveUsers(presenceState);
 				}
 			})
-			.on('presence', { event: 'join' }, ({ key, newPresences }: { key: string; newPresences: unknown[] }) => {
-				console.log('User joined:', key, newPresences);
-			})
-			.on('presence', { event: 'leave' }, ({ key, leftPresences }: { key: string; leftPresences: unknown[] }) => {
-				console.log('User left:', key, leftPresences);
-			});
+			.on(
+				'presence',
+				{ event: 'join' },
+				({ key, newPresences }: { key: string; newPresences: unknown[] }) => {
+					console.log('User joined:', key, newPresences);
+				}
+			)
+			.on(
+				'presence',
+				{ event: 'leave' },
+				({ key, leftPresences }: { key: string; leftPresences: unknown[] }) => {
+					console.log('User left:', key, leftPresences);
+				}
+			);
 
 		// Join the presence channel
 		await presenceChannel.subscribe(async (status: string) => {

@@ -30,9 +30,9 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					Manage your account settings and preferences.
 				</p>
-				<Button 
-					variant="outline" 
-					size="sm" 
+				<Button
+					variant="outline"
+					size="sm"
 					onclick={() => goto('/profile')}
 					onmouseenter={() => preloadRoute('/profile')}
 				>
@@ -45,9 +45,9 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					Start simulated conversations with markdown, images, and real-time read receipts.
 				</p>
-				<Button 
-					variant="outline" 
-					size="sm" 
+				<Button
+					variant="outline"
+					size="sm"
 					onclick={() => goto('/chat')}
 					onmouseenter={() => preloadRoute('/chat')}
 				>
@@ -58,9 +58,9 @@
 			<Card variant="outlined">
 				<h3 class="mb-2 text-lg font-semibold">Tasks</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Manage your tasks and projects.</p>
-				<Button 
-					variant="outline" 
-					size="sm" 
+				<Button
+					variant="outline"
+					size="sm"
 					onclick={() => goto('/kanban')}
 					onmouseenter={() => preloadRoute('/kanban')}
 				>
@@ -79,9 +79,9 @@
 				<p class="mb-4 text-gray-600 dark:text-gray-400">
 					View your activity and usage statistics.
 				</p>
-				<Button 
-					variant="outline" 
-					size="sm" 
+				<Button
+					variant="outline"
+					size="sm"
 					onclick={() => goto('/analytics')}
 					onmouseenter={() => preloadRoute('/analytics')}
 				>
@@ -92,9 +92,9 @@
 			<Card variant="outlined">
 				<h3 class="mb-2 text-lg font-semibold">User Profiles</h3>
 				<p class="mb-4 text-gray-600 dark:text-gray-400">Discover and connect with other users.</p>
-				<Button 
-					variant="outline" 
-					size="sm" 
+				<Button
+					variant="outline"
+					size="sm"
 					onclick={() => goto('/profiles')}
 					onmouseenter={() => preloadRoute('/profiles')}
 				>

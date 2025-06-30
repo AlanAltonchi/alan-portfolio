@@ -89,7 +89,10 @@
 		<span>Less</span>
 		<div class="flex gap-1">
 			{#each [0.2, 0.4, 0.6, 0.8, 1] as intensity (intensity)}
-				<div class="h-3 w-3 rounded" style="background-color: {getColor(maxValue * intensity)}"></div>
+				<div
+					class="h-3 w-3 rounded"
+					style="background-color: {getColor(maxValue * intensity)}"
+				></div>
 			{/each}
 		</div>
 		<span>More</span>

@@ -56,9 +56,9 @@
 					showMenu = false;
 				}
 			};
-			
+
 			document.addEventListener('click', handleClickOutside);
-			
+
 			return () => {
 				document.removeEventListener('click', handleClickOutside);
 			};
@@ -182,7 +182,7 @@
 			</div>
 
 			<!-- Menu button -->
-			<div class="relative menu-container">
+			<div class="menu-container relative">
 				<button
 					onclick={() => (showMenu = !showMenu)}
 					class="group rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 p-3 transition-all duration-200 hover:from-gray-200 hover:to-gray-300 hover:shadow-lg dark:from-gray-700 dark:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700"

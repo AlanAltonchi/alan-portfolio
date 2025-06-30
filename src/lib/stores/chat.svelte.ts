@@ -1,4 +1,8 @@
-import type { SupabaseClient, RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type {
+	SupabaseClient,
+	RealtimeChannel,
+	RealtimePostgresChangesPayload
+} from '@supabase/supabase-js';
 import type { ConversationWithUsers, Message, TypingStatus } from '$lib/types';
 import {
 	ConversationService,
@@ -420,9 +424,11 @@ class ChatStore {
 		});
 	}
 
-	private handleMessageUpdate(payload: RealtimePostgresChangesPayload<{
-		[key: string]: unknown;
-	}>): void {
+	private handleMessageUpdate(
+		payload: RealtimePostgresChangesPayload<{
+			[key: string]: unknown;
+		}>
+	): void {
 		// Ensure we only handle messages for the currently selected conversation
 		const messageData = payload.new as Message;
 		if (
@@ -457,7 +463,7 @@ class ChatStore {
 	}
 
 	private handleTypingUpdate(
-		payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>, 
+		payload: RealtimePostgresChangesPayload<{ [key: string]: unknown }>,
 		conversation: ConversationWithUsers
 	): void {
 		if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {

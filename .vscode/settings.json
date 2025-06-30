@@ -1,0 +1,36 @@
+{
+	"workbench.editor.untitled.labelFormat": "content",
+	"workbench.editor.labelFormat": "short",
+	"workbench.tree.indent": 16,
+	"explorer.sortOrder": "default",
+	"explorer.compactFolders": true,
+	"material-icon-theme.folders.color": "#43a047",
+	"files.exclude": {
+		"**/.svelte-kit": true,
+		"**/.vscode": true,
+		"**/node_modules": true,
+		"**/supabase": true
+	},
+	"css.lint.unknownAtRules": "ignore",
+	"tailwindCSS.includeLanguages": {
+		"html": "html",
+		"javascript": "javascript",
+		"css": "css"
+	},
+	"editor.quickSuggestions": {
+		"strings": true
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	},
+	"svelte.plugin.svelte.compilerWarnings": {
+		"non_state_reference": "ignore"
+	},
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "always",
+		"source.organizeImports": "always",
+		"source.sortMembers": "always"
+	}
+}

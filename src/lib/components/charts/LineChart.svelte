@@ -78,17 +78,19 @@
 	});
 
 	// Calculate path length for proper animation
-	const pathLength = $derived((() => {
-		if (!hasData || data.length <= 1) return 0;
-		let length = 0;
-		for (let i = 1; i < data.length; i++) {
-			const dx = xScale(i) - xScale(i - 1);
-			const dy1 = yScale(data[i].pageViews) - yScale(data[i - 1].pageViews);
-			const dy2 = yScale(data[i].uniqueVisitors) - yScale(data[i - 1].uniqueVisitors);
-			length += Math.max(Math.sqrt(dx * dx + dy1 * dy1), Math.sqrt(dx * dx + dy2 * dy2));
-		}
-		return Math.ceil(length);
-	})());
+	const pathLength = $derived(
+		(() => {
+			if (!hasData || data.length <= 1) return 0;
+			let length = 0;
+			for (let i = 1; i < data.length; i++) {
+				const dx = xScale(i) - xScale(i - 1);
+				const dy1 = yScale(data[i].pageViews) - yScale(data[i - 1].pageViews);
+				const dy2 = yScale(data[i].uniqueVisitors) - yScale(data[i - 1].uniqueVisitors);
+				length += Math.max(Math.sqrt(dx * dx + dy1 * dy1), Math.sqrt(dx * dx + dy2 * dy2));
+			}
+			return Math.ceil(length);
+		})()
+	);
 
 	const yTicks = $derived(() => {
 		const ticks = [];
@@ -327,7 +329,9 @@
 							onblur={() => (hoveredIndex = null)}
 							tabindex="0"
 							role="button"
-							aria-label="Data point for {formatDate(d.date)}: {d.pageViews} views, {d.uniqueVisitors} visitors"
+							aria-label="Data point for {formatDate(
+								d.date
+							)}: {d.pageViews} views, {d.uniqueVisitors} visitors"
 							class="cursor-pointer"
 						>
 							<rect

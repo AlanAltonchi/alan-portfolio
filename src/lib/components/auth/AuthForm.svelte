@@ -97,7 +97,11 @@
 		variant="primary"
 		class="w-full"
 		{loading}
-		disabled={loading || !email || !password || (showConfirmPassword && !confirmPassword) || (showName && !name)}
+		disabled={loading ||
+			!email ||
+			!password ||
+			(showConfirmPassword && !confirmPassword) ||
+			(showName && !name)}
 	>
 		{loading ? loadingText : submitText}
 	</Button>

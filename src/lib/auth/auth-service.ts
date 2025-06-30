@@ -71,7 +71,7 @@ export class AuthService {
 					error: error.message
 				};
 			}
-			
+
 			return {
 				success: true,
 				user: data.user ?? undefined,

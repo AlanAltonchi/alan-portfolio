@@ -65,7 +65,9 @@ export class ConversationService {
 			.eq('id', conversationId);
 	}
 
-	private async cleanupImages(messagesWithImages: Array<{ image_url: string | null }>): Promise<void> {
+	private async cleanupImages(
+		messagesWithImages: Array<{ image_url: string | null }>
+	): Promise<void> {
 		const imagePaths = messagesWithImages
 			.map((msg: { image_url: string | null }) => msg.image_url)
 			.filter((url: string | null): url is string => url !== null && url.includes('chat-images/'))

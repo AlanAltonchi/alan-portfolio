@@ -6,7 +6,6 @@
 
 	const state = $derived(kanbanStore.state);
 	const user = $derived(authStore.user);
-	
 
 	onDestroy(() => {
 		kanbanStore.cleanup();

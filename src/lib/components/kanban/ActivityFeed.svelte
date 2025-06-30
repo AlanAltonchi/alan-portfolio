@@ -350,8 +350,8 @@
 <!-- Click outside to close filter dropdown -->
 {#if showFilterDropdown}
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div 
-		class="fixed inset-0 z-40" 
+	<div
+		class="fixed inset-0 z-40"
 		onclick={() => (showFilterDropdown = false)}
 		role="button"
 		tabindex="-1"
